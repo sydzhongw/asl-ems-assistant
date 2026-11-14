@@ -39,15 +39,15 @@
     "ARMS":     "clips/arms.mp4", 
     "LEGS":     "clips/legs.mp4", 
     "FEET":     "clips/feet.mp4", 
-    "HANDS":    "clips/hands.mp4", #
-    "FINGERS":  "clips/fingers.mp4", #
-    "TOES":     "clips/toes.mp4", #
+    "HANDS":    "clips/hands.mp4", 
+    "FINGERS":  "clips/fingers.mp4", 
+    "TOES":     "clips/toes.mp4", 
     "EYES":     "clips/eyes.mp4",
     "EARS":     "clips/ears.mp4",
     "NOSE":     "clips/nose.mp4",
     "MOUTH":    "clips/mouth.mp4",
-    "STOMACH":    "clips/stomach.mp4", #
-    "BACK":       "clips/back.mp4", #
+    "STOMACH":    "clips/stomach.mp4", 
+    "BACK":       "clips/back.mp4", 
     "LEFT":       "clips/left.mp4",
     "RIGHT":      "clips/right.mp4"
     
