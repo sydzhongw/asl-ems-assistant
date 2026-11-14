@@ -3,13 +3,14 @@ const fs = require("fs");
 const path = require("path");
 const { GoogleGenAI } = require("@google/genai");
 
+const root = path.join(__dirname, "..");
 const app = express();
 app.use(express.json({ limit: "30mb" }));
-app.use(express.static(path.join(__dirname, "../app")));
-app.use("/data", express.static(path.join(__dirname, "../data")));
-app.use(express.static(path.join(__dirname, "../public"))); // clips: public/signs/<phrase_id>.mp4
+app.use(express.static(path.join(root, "app")));
+app.use("/data", express.static(path.join(root, "data")));
+app.use("/assets", express.static(path.join(root, "assets")));
 
-const { phrases } = JSON.parse(fs.readFileSync(path.join(__dirname, "../data/ems_questions.json"), "utf8"));
+const { phrases } = JSON.parse(fs.readFileSync(path.join(root, "data/ems_questions.json"), "utf8"));
 const ids = new Set(phrases.map((p) => p.id));
 const list = phrases.map((p) => `${p.id}: ${p.english.join(" | ")}`).join("\n");
 
@@ -19,7 +20,13 @@ if (!process.env.GEMINI_API_KEY || !process.env.GEMINI_MODEL) {
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const model = process.env.GEMINI_MODEL;
 
-// EMS speech -> approved phrase id
+// Which clips actually exist, so the UI can grey out the rest.
+app.get("/api/clips", (req, res) => {
+  const have = phrases.filter((p) => fs.existsSync(path.join(root, p.clip))).map((p) => p.id);
+  res.json({ have });
+});
+
+// EMT speech -> approved phrase id
 app.post("/api/english-to-asl", async (req, res) => {
   const text = String((req.body && req.body.text) || "").slice(0, 300);
   if (!text) return res.json({ phrase_id: null, confidence: 0 });
@@ -40,7 +47,7 @@ app.post("/api/english-to-asl", async (req, res) => {
   }
 });
 
-// Patient signing video -> English text (prototype; may be wrong, so the EMT confirms)
+// Patient signing video -> English text (AI translation; the EMT confirms with the patient)
 app.post("/api/asl-to-english", async (req, res) => {
   const { video, mimeType } = req.body || {};
   if (!video) return res.json({ text: null });
@@ -49,7 +56,7 @@ app.post("/api/asl-to-english", async (req, res) => {
       model,
       contents: [{ role: "user", parts: [
         { inlineData: { mimeType: mimeType || "video/webm", data: video } },
-        { text: "This video shows a person signing American Sign Language in an emergency. Translate it into one short, plain English sentence. If you cannot clearly identify the signs, reply exactly UNCLEAR. Do not guess and do not add anything else." },
+        { text: "This video shows a person signing American Sign Language to an EMT during a medical emergency. Translate it into one short, plain English sentence. If you cannot clearly identify the signs, reply exactly UNCLEAR. Do not guess and do not add anything else." },
       ] }],
     });
     const text = (r.text || "").trim();

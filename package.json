@@ -1,10 +1,9 @@
 {
+  "name": "asl-ems-assistant",
+  "private": true,
+  "scripts": { "start": "node --env-file=.env backend/server.js" },
   "dependencies": {
-    "react": "^19.3.1",
-    "react-dom": "^19.3.1"
-  },
-  "devDependencies": {
-    "@types/react": "^19.3.0",
-    "@types/react-dom": "^19.3.0"
+    "@google/genai": "latest",
+    "express": "^4.19.2"
   }
 }
