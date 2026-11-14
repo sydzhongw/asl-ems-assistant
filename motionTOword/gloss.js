@@ -45,7 +45,12 @@ export function resolve(gloss, lexicon) {
       tokens.push({ label: word, status: "sign" });
       return;
     }
-    const letters = [...word].map((c) => normalize(alphabet[c], secs)).filter(Boolean);
+    // Spell the word letter by letter, defaulting to clips/alphabet/<LETTER>.png
+    const dir = lexicon.alphabetDir ?? "clips/alphabet/";
+    const ext = lexicon.alphabetExt ?? ".png";
+    const letters = [...word]
+      .filter((c) => /[A-Z0-9]/.test(c))
+      .map((c) => normalize(alphabet[c] ?? `${dir}${c}${ext}`, lexicon.letterSeconds ?? secs));
     if (letters.length) {
       letters.forEach((l) => items.push({ ...l, token, fs: true }));
       tokens.push({ label: isFs ? raw : `FS-${word}`, status: "fs" });

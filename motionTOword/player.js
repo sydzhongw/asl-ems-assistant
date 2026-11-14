@@ -2,36 +2,51 @@
 // - Video clips alternate between two <video> elements: while one plays, the
 //   other preloads and seeks to the next clip, so signs switch with no gap.
 // - Image items (e.g. fingerspelled letters) stay on screen for item.seconds.
+// Anything that hangs or fails to load is skipped and reported via onError.
 
-const once = (el, ev) =>
+const once = (el, ev, ms = 5000) =>
   new Promise((resolve, reject) => {
-    const ok = () => { el.removeEventListener("error", bad); resolve(); };
-    const bad = () => { el.removeEventListener(ev, ok); reject(new Error("clip failed to load")); };
-    el.addEventListener(ev, ok, { once: true });
-    el.addEventListener("error", bad, { once: true });
+    const cleanup = () => {
+      clearTimeout(timer);
+      el.removeEventListener(ev, ok);
+      el.removeEventListener("error", bad);
+    };
+    const ok = () => { cleanup(); resolve(); };
+    const bad = () => { cleanup(); reject(new Error("failed to load")); };
+    const timer = setTimeout(() => { cleanup(); reject(new Error(`timed out waiting for ${ev}`)); }, ms);
+    el.addEventListener(ev, ok);
+    el.addEventListener("error", bad);
   });
 
 export class ClipPlayer {
-  constructor(videos, img, { onStep, onDone } = {}) {
+  constructor(videos, img, { onStep, onDone, onError } = {}) {
     this.vids = videos;
     this.img = img;
     this.onStep = onStep;
     this.onDone = onDone;
+    this.onError = onError;
     this.run = 0;
+  }
+
+  fail(item, why) {
+    console.warn("Clip problem:", why, item);
+    this.onError?.(item);
   }
 
   async prepVideo(video, item, rate) {
     try {
       video.pause();
+      video.preload = "auto";
       video.src = item.src;
-      video.playbackRate = rate;
       await once(video, "loadedmetadata");
+      video.playbackRate = rate; // must be set after load, which resets it
       if (item.start > 0) {
         video.currentTime = item.start;
-        await once(video, "seeked");
+        try { await once(video, "seeked", 1500); } catch { /* keep going from where it is */ }
       }
       return true;
-    } catch {
+    } catch (err) {
+      this.fail(item, err.message);
       return false;
     }
   }
@@ -42,7 +57,8 @@ export class ClipPlayer {
       preload.src = item.image;
       await preload.decode();
       return true;
-    } catch {
+    } catch (err) {
+      this.fail(item, err.message);
       return false;
     }
   }
@@ -53,11 +69,19 @@ export class ClipPlayer {
 
   playVideo(video, item, run) {
     return new Promise((resolve) => {
-      video.play().catch(resolve);
+      video.play().catch((err) => { this.fail(item, err.message); resolve(); });
+      let last = -1;
+      let movedAt = performance.now();
       const tick = () => {
         if (run !== this.run) { video.pause(); return resolve(); }
         const end = item.end ?? video.duration;
         if (video.ended || video.currentTime >= end - 0.04) { video.pause(); return resolve(); }
+        if (video.currentTime !== last) { last = video.currentTime; movedAt = performance.now(); }
+        else if (performance.now() - movedAt > 3000) { // stalled: don't hang the whole sentence
+          video.pause();
+          this.fail(item, "playback stalled");
+          return resolve();
+        }
         requestAnimationFrame(tick);
       };
       tick();
