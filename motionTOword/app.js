@@ -1,10 +1,9 @@
-import { toGloss } from "./ai.js";
 import { fallbackGloss, resolve } from "./gloss.js";
 import { ClipPlayer } from "./player.js";
 
 const $ = (id) => document.getElementById(id);
 const els = {
-  key: $("key"), mic: $("mic"), rate: $("rate"), replay: $("replay"),
+  mic: $("mic"), rate: $("rate"), replay: $("replay"),
   transcript: $("transcript"), gloss: $("gloss"), status: $("status"),
   typed: $("typed"), typedInput: $("typedInput"), screen: document.querySelector(".screen"),
 };
@@ -14,12 +13,6 @@ let lastItems = [];
 let recognition = null;
 const failed = new Set();
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-// Remember the key for this tab only.
-try { els.key.value = sessionStorage.getItem("ai-key") ?? ""; } catch {}
-els.key.addEventListener("change", () => {
-  try { sessionStorage.setItem("ai-key", els.key.value.trim()); } catch {}
-});
 
 const setStatus = (msg, isError = false) => {
   els.status.textContent = msg;
@@ -61,43 +54,35 @@ function renderGloss(tokens) {
   );
 }
 
-async function process(text) {
+function process(text) {
   text = text.trim();
   if (!text) return;
   els.transcript.textContent = text;
-  const key = els.key.value.trim();
+  setStatus("");
 
-  let gloss;
-  try {
-    if (key) {
-      setStatus("Converting to ASL gloss...");
-      gloss = await toGloss(key, text, Object.keys(lexicon.signs ?? {}));
-    } else {
-      gloss = fallbackGloss(text);
-      setStatus("Demo mode: no API key, so gloss uses simple rules.");
-    }
-  } catch (err) {
-    gloss = fallbackGloss(text);
-    setStatus(`Gloss API failed (${err.message}). Used simple rules instead.`, true);
-  }
-
+  const gloss = fallbackGloss(text, Object.keys(lexicon.signs ?? {}));
   const { items, tokens } = resolve(gloss, lexicon);
   renderGloss(tokens);
   lastItems = items;
   els.replay.disabled = !items.length;
 
-  if (!items.length) return setStatus("None of these signs have clips yet. Add clips to lexicon.json.", true);
+  if (!items.length) return setStatus("None of these words have signs or letter pictures yet. Check lexicon.json.", true);
   failed.clear();
   player.play(items, Number(els.rate.value));
 }
 
-// ---- microphone: the browser's built-in speech recognition. No API key needed. ----
+// ---- microphone: the browser's built-in speech recognition ----
 const MIC_ERRORS = {
   "not-allowed": "Microphone blocked. Click the lock icon in the address bar, allow the microphone, then reload.",
-  "service-not-allowed": "This browser blocked speech recognition. Try Chrome or Edge.",
-  "network": "Speech recognition couldn't reach its service. Check your internet, or use Chrome or Edge (Brave doesn't support it).",
+  "service-not-allowed": "This browser blocked speech recognition. Try Chrome or Edge, or type a sentence.",
+  "network": "Speech recognition couldn't reach its service. Check your internet (Chrome and Edge need it), or type a sentence. Brave doesn't support this.",
   "no-speech": "Didn't hear anything. Check your microphone is the selected input and try again.",
   "audio-capture": "No microphone found. Plug one in or check your system sound settings.",
+};
+
+const setMicUI = (on) => {
+  els.mic.setAttribute("aria-pressed", String(on));
+  els.mic.textContent = on ? "Stop and translate" : "Start speaking";
 };
 
 function startListening() {
@@ -117,8 +102,7 @@ function startListening() {
   recognition.onerror = (e) => setStatus(MIC_ERRORS[e.error] ?? `Speech recognition error: ${e.error}`, true);
   recognition.onend = () => {
     recognition = null;
-    els.mic.setAttribute("aria-pressed", "false");
-    els.mic.textContent = "Start speaking";
+    setMicUI(false);
     if (heard.trim()) process(heard);
     else if (!els.status.classList.contains("err")) setStatus("Didn't catch anything. Try again.", true);
   };
@@ -128,8 +112,7 @@ function startListening() {
     recognition = null;
     return setStatus(`Couldn't start the microphone: ${err.message}`, true);
   }
-  els.mic.setAttribute("aria-pressed", "true");
-  els.mic.textContent = "Stop and translate";
+  setMicUI(true);
   setStatus("Listening... speak, then press the button again.");
 }
 
