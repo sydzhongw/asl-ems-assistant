@@ -1,59 +1,44 @@
-<div>Teachable Machine Image Model</div>
-<button type="button" onclick="init()">Start</button>
-<div id="webcam-container"></div>
-<div id="label-container"></div>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
-<script type="text/javascript">
-    // More API functions here:
-    // https://github.com/googlecreativelab/teachablemachine-community/tree/master/libraries/image
+import { useEffect, useRef, useState } from "react";
 
-    // the link to your model provided by Teachable Machine export panel
-    const URL = "./my_model/";
+// Clips live in public/signs/<phrase_id>.mp4 (served at /signs/...).
+// Change this one line if your clips are served from somewhere else.
+const CLIP_BASE = "/signs";
 
-    let model, webcam, labelContainer, maxPredictions;
+type Props = { phraseId: string | null; label?: string };
 
-    // Load the image model and setup the webcam
-    async function init() {
-        const modelURL = URL + "model.json";
-        const metadataURL = URL + "metadata.json";
+export default function SignerVideo({ phraseId, label = "ASL Signer" }: Props) {
+  const ref = useRef<HTMLVideoElement>(null);
+  const [failed, setFailed] = useState(false);
+  const src = phraseId ? `${CLIP_BASE}/${phraseId}.mp4` : null;
 
-        // load the model and metadata
-        // Refer to tmImage.loadFromFiles() in the API to support files from a file picker
-        // or files from your local hard drive
-        // Note: the pose library adds "tmImage" object to your window (window.tmImage)
-        model = await tmImage.load(modelURL, metadataURL);
-        maxPredictions = model.getTotalClasses();
+  useEffect(() => setFailed(false), [src]);
 
-        // Convenience function to setup a webcam
-        const flip = true; // whether to flip the webcam
-        webcam = new tmImage.Webcam(200, 200, flip); // width, height, flip
-        await webcam.setup(); // request access to the webcam
-        await webcam.play();
-        window.requestAnimationFrame(loop);
+  const replay = () => {
+    if (!ref.current) return;
+    ref.current.currentTime = 0;
+    ref.current.play().catch(() => {});
+  };
 
-        // append elements to the DOM
-        document.getElementById("webcam-container").appendChild(webcam.canvas);
-        labelContainer = document.getElementById("label-container");
-        for (let i = 0; i < maxPredictions; i++) { // and class labels
-            labelContainer.appendChild(document.createElement("div"));
-        }
-    }
-
-    async function loop() {
-        webcam.update(); // update the webcam frame
-        await predict();
-        window.requestAnimationFrame(loop);
-    }
-
-    // run the webcam image through the image model
-    async function predict() {
-        // predict can take in an image, video or canvas html element
-        const prediction = await model.predict(webcam.canvas);
-        for (let i = 0; i < maxPredictions; i++) {
-            const classPrediction =
-                prediction[i].className + ": " + prediction[i].probability.toFixed(2);
-            labelContainer.childNodes[i].innerHTML = classPrediction;
-        }
-    }
-</script>
+  return (
+    <div style={{ position: "relative", aspectRatio: "16 / 9", background: "#1c2433", borderRadius: 16, overflow: "hidden" }}>
+      <span style={{ position: "absolute", top: 12, left: 12, zIndex: 1, padding: "4px 12px", borderRadius: 999, background: "#0f1520", color: "#9ad7ff", fontSize: 14 }}>
+        {label}
+      </span>
+      {src && !failed ? (
+        <>
+          {/* objectFit contain keeps the signer's hands and face fully visible */}
+          <video ref={ref} key={src} src={src} autoPlay muted playsInline onError={() => setFailed(true)}
+            style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+          <button onClick={replay}
+            style={{ position: "absolute", bottom: 12, right: 12, minHeight: 44, padding: "0 16px", borderRadius: 999, border: 0, background: "#4fb99a", color: "#06251d", fontWeight: 600, cursor: "pointer" }}>
+            Replay
+          </button>
+        </>
+      ) : (
+        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", padding: 24, textAlign: "center", color: "#cbd5e1", fontSize: 18 }}>
+          {failed ? "Clip not found. Request a human interpreter." : "ASL signer ready"}
+        </div>
+      )}
+    </div>
+  );
+}

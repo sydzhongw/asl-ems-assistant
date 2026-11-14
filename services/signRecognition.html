@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ASL to English</title>
+  <style>
+    body { font-family: sans-serif; background: #111; color: #fff; text-align: center; padding: 20px; }
+    video { width: 480px; max-width: 100%; border-radius: 12px; border: 2px solid #444; transform: scaleX(-1); }
+    button { padding: 15px 30px; font-size: 18px; margin-top: 15px; cursor: pointer; border-radius: 8px; border: none; background: #2563eb; color: white; touch-action: none; }
+    button.recording { background: #dc2626; }
+    #output { margin-top: 20px; font-size: 24px; font-weight: bold; color: #4ade80; min-height: 40px; }
+  </style>
+</head>
+<body>
+  <h2>ASL → English Translator</h2>
+  <video id="webcam" autoplay muted playsinline></video><br />
+  <button id="recordBtn">Hold to Sign (Release to Translate)</button>
+  <div id="output">Hold the button and sign...</div>
+
+  <script>
+    const video = document.getElementById("webcam");
+    const btn = document.getElementById("recordBtn");
+    const output = document.getElementById("output");
+    let mediaRecorder = null;
+    let chunks = [];
+
+    // 1. Webcam + recorder
+    navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+      .then(stream => {
+        video.srcObject = stream;
+        const mimeType = MediaRecorder.isTypeSupported("video/webm") ? "video/webm" : "";
+        mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+        mediaRecorder.ondataavailable = e => chunks.push(e.data);
+        mediaRecorder.onstop = () => {
+          const blob = new Blob(chunks, { type: mediaRecorder.mimeType || "video/webm" });
+          chunks = [];
+          sendToServer(blob);
+        };
+      })
+      .catch(() => { output.innerText = "Camera not available. Allow camera access and reload."; });
+
+    // 2. Record while held (pointer events work for mouse and touch)
+    btn.onpointerdown = () => {
+      if (!mediaRecorder || mediaRecorder.state !== "inactive") return;
+      chunks = [];
+      mediaRecorder.start();
+      btn.classList.add("recording");
+      btn.innerText = "Recording... (Let go when done)";
+    };
+    const stop = () => {
+      if (mediaRecorder && mediaRecorder.state === "recording") {
+        mediaRecorder.stop();
+        output.innerText = "Translating sign...";
+      }
+      btn.classList.remove("recording");
+      btn.innerText = "Hold to Sign (Release to Translate)";
+    };
+    btn.onpointerup = stop;
+    btn.onpointerleave = stop;
+
+    // 3. Send to YOUR server, which holds the key
+    function sendToServer(blob) {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        try {
+          const res = await fetch("/api/asl-to-english", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ video: reader.result.split(",")[1], mimeType: blob.type })
+          });
+          const { text } = await res.json();
+          if (text) {
+            output.innerText = text;
+            speechSynthesis.speak(new SpeechSynthesisUtterance(text));
+          } else {
+            output.innerText = "Unclear. Please sign again.";
+          }
+        } catch {
+          output.innerText = "Could not reach the server.";
+        }
+      };
+      reader.readAsDataURL(blob);
+    }
+  </script>
+</body>
+</html>
