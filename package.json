@@ -1,9 +1,11 @@
 {
   "name": "asl-ems-assistant",
   "private": true,
-  "scripts": { "start": "node --env-file=.env backend/server.js" },
+  "scripts": {
+    "start": "node --env-file=.env backend/server.js"
+  },
   "dependencies": {
-    "@google/genai": "latest",
+    "@google/genai": "^3.3.0",
     "express": "^4.19.2"
   }
 }
