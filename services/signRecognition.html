@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ASL to English via Gemini</title>
+  <style>
+    body { font-family: sans-serif; background: #111; color: #fff; text-align: center; padding: 20px; }
+    video { width: 480px; border-radius: 12px; border: 2px solid #444; transform: scaleX(-1); }
+    button { padding: 15px 30px; font-size: 18px; margin-top: 15px; cursor: pointer; border-radius: 8px; border: none; background: #2563eb; color: white; }
+    button:active { background: #dc2626; }
+    #output { margin-top: 20px; font-size: 24px; font-weight: bold; color: #4ade80; min-height: 40px; }
+  </style>
+</head>
+<body>
+  <h2>ASL → English Translator (Gemini API)</h2>
+  <video id="webcam" autoplay muted playsinline></video><br />
+  <button id="recordBtn">Hold to Sign (Release to Translate)</button>
+  <div id="output">Hold the button and sign...</div>
+
+  <script>
+    const API_KEY = "AQ.Ab8RN6JM4io-V75MgS3ui1iH0EfZ4EP6RQIfChaWXiiQFZVOhg";
+    const video = document.getElementById("webcam");
+    const btn = document.getElementById("recordBtn");
+    const output = document.getElementById("output");
+    let mediaRecorder;
+    let chunks = [];
+
+    // 1. Turn on Webcam
+    navigator.mediaDevices.getUserMedia({ video: true, audio: false }).then(stream => {
+      video.srcObject = stream;
+      mediaRecorder = new MediaRecorder(stream, { mimeType: "video/webm" });
+
+      mediaRecorder.ondataavailable = e => chunks.push(e.data);
+      mediaRecorder.onstop = async () => {
+        output.innerText = "Translating sign...";
+        const blob = new Blob(chunks, { type: "video/webm" });
+        chunks = [];
+        await sendToGemini(blob);
+      };
+    });
+
+    // 2. Record while button is held down
+    btn.onmousedown = () => {
+      chunks = [];
+      mediaRecorder.start();
+      btn.innerText = "Recording... (Let go when done)";
+    };
+    btn.onmouseup = () => {
+      mediaRecorder.stop();
+      btn.innerText = "Hold to Sign (Release to Translate)";
+    };
+
+    // 3. Convert video to Base64 & call Gemini 2.5 Flash
+    async function sendToGemini(videoBlob) {
+      const reader = new FileReader();
+      reader.readAsDataURL(videoBlob);
+      reader.onloadend = async () => {
+        const base64Video = reader.result.split(",")[1];
+
+        const response = await fetch(
+          `https://googleapis.com{API_KEY}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{
+                parts: [
+                  { inline_data: { mime_type: "video/webm", data: base64Video } },
+                  { text: "Translate the American Sign Language (ASL) in this video into natural English. Reply ONLY with the English translation, nothing else." }
+                ]
+              }]
+            })
+          }
+        );
+
+        const data = await response.json();
+        const translation = data.candidates?.[0]?.content?.parts?.[0]?.text || "Could not understand sign.";
+        output.innerText = translation;
+
+        // 4. Speak the English translation out loud
+        window.speechSynthesis.speak(new SpeechSynthesisUtterance(translation));
+      };
+    }
+  </script>
+</body>
+</html>
