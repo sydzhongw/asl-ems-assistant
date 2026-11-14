@@ -33,12 +33,12 @@
     "DIFFICULT": "clips/difficult.mp4",
     "EASY":     "clips/easy.mp4",
     "PRESSURE": "clips/pressure.mp4", 
-    "FAINT":    "clips/faint.mp4", #
-    "HEAD":     "clips/head.mp4", #
-    "NECK":     "clips/neck.mp4", #
-    "ARMS":     "clips/arms.mp4", #
-    "LEGS":     "clips/legs.mp4", #
-    "FEET":     "clips/feet.mp4", #
+    "FAINT":    "clips/faint.mp4", 
+    "HEAD":     "clips/head.mp4", 
+    "NECK":     "clips/neck.mp4", 
+    "ARMS":     "clips/arms.mp4", 
+    "LEGS":     "clips/legs.mp4", 
+    "FEET":     "clips/feet.mp4", 
     "HANDS":    "clips/hands.mp4", #
     "FINGERS":  "clips/fingers.mp4", #
     "TOES":     "clips/toes.mp4", #
