@@ -1,0 +1,63 @@
+"""Scan clips/ and add any new videos to lexicon.json.
+
+  clips/hello.mp4            -> signs["HELLO"]
+  clips/thank-you.mp4        -> signs["THANK-YOU"]   (spaces/underscores become hyphens)
+  clips/alphabet/A.mp4       -> alphabet["A"]   (A.png / .jpg / .webp / .svg also work)
+
+Existing entries (including hand-tuned start/end trims) are never overwritten.
+Run from this folder:  python3 build_lexicon.py
+"""
+import json
+import re
+from pathlib import Path
+
+ROOT = Path(__file__).parent
+LEXICON = ROOT / "lexicon.json"
+CLIPS = ROOT / "clips"
+VIDEO_EXT = {".mp4", ".webm", ".mov"}
+IMAGE_EXT = {".png", ".jpg", ".jpeg", ".webp", ".svg"}  # allowed in clips/alphabet/ only
+
+
+def gloss_name(path: Path) -> str:
+    return re.sub(r"[\s_]+", "-", path.stem.strip()).upper()
+
+
+def entry_path(entry) -> str:
+    return entry if isinstance(entry, str) else entry.get("clip") or entry.get("src", "")
+
+
+def main() -> None:
+    lex = json.loads(LEXICON.read_text()) if LEXICON.exists() else {}
+    signs = lex.setdefault("signs", {})
+    alphabet = lex.setdefault("alphabet", {})
+    lex.setdefault("imageSeconds", 1.2)  # how long each letter picture stays on screen
+    added = []
+
+    for video in sorted(CLIPS.rglob("*")):
+        ext = video.suffix.lower()
+        in_alphabet = video.parent.name == "alphabet"
+        if ext not in VIDEO_EXT and not (in_alphabet and ext in IMAGE_EXT):
+            continue
+        rel = video.relative_to(ROOT).as_posix()
+        if in_alphabet:
+            table, key = alphabet, video.stem.upper()
+        else:
+            table, key = signs, gloss_name(video)
+        if key not in table:
+            table[key] = rel
+            added.append(key)
+
+    # Warn about entries pointing at files that don't exist.
+    for table in (signs, alphabet):
+        for key, entry in table.items():
+            if not (ROOT / entry_path(entry)).exists():
+                print(f"missing file for {key}: {entry_path(entry)}")
+
+    lex["signs"] = dict(sorted(signs.items()))
+    lex["alphabet"] = dict(sorted(alphabet.items()))
+    LEXICON.write_text(json.dumps(lex, indent=2) + "\n")
+    print(f"Added {len(added)} entries. Total: {len(lex['signs'])} signs, {len(lex['alphabet'])} letters.")
+
+
+if __name__ == "__main__":
+    main()
