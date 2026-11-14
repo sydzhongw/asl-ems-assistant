@@ -1,0 +1,154 @@
+{
+  "phrases": [
+    {
+      "id": "what_happened",
+      "category": "assessment",
+      "english": ["What happened?", "Can you tell me what happened?"],
+      "gloss_draft": ["WHAT", "HAPPEN"],
+      "clip": "assets/signs/what_happened.mp4",
+      "coverage": "covered",
+      "needs_signer_review": true,
+      "notes": ""
+    },
+    {
+      "id": "where_hurt",
+      "category": "assessment",
+      "english": ["Where does it hurt?", "Where is the pain?"],
+      "gloss_draft": ["WHERE", "HURT"],
+      "clip": "assets/signs/where_hurt.mp4",
+      "coverage": "covered",
+      "needs_signer_review": true,
+      "notes": ""
+    },
+    {
+      "id": "when_started",
+      "category": "assessment",
+      "english": ["When did the symptoms start?", "When did this start?"],
+      "gloss_draft": ["WHEN", "START"],
+      "clip": "assets/signs/when_started.mp4",
+      "coverage": "partial",
+      "needs_signer_review": true,
+      "notes": "START was not in the Anysign A-Z list. Signer to confirm."
+    },
+    {
+      "id": "describe_pain",
+      "category": "assessment",
+      "english": ["Can you describe the pain?", "What does the pain feel like?"],
+      "gloss_draft": [],
+      "clip": "assets/signs/describe_pain.mp4",
+      "coverage": "record",
+      "needs_signer_review": true,
+      "notes": "Signer decides how to ask. Consider icon choices on the patient screen (sharp, dull, pressure)."
+    },
+    {
+      "id": "pain_scale",
+      "category": "assessment",
+      "english": ["How severe is your pain on a scale of 1 to 10?", "How bad is the pain, 1 to 10?"],
+      "gloss_draft": [],
+      "clip": "assets/signs/pain_scale.mp4",
+      "coverage": "partial",
+      "needs_signer_review": true,
+      "notes": "Pair with number buttons 1-10 on the patient screen so no reading is needed."
+    },
+    {
+      "id": "medical_conditions",
+      "category": "assessment",
+      "english": ["Do you have any existing medical conditions?", "Do you have any health problems?"],
+      "gloss_draft": ["HEALTH", "PROBLEM", "HAVE"],
+      "clip": "assets/signs/medical_conditions.mp4",
+      "coverage": "partial",
+      "needs_signer_review": true,
+      "notes": "Concept-heavy. Signer decides the natural phrasing."
+    },
+    {
+      "id": "medications",
+      "category": "assessment",
+      "english": ["Are you currently taking any medications?", "Do you take any medicine?"],
+      "gloss_draft": ["MEDICINE", "YOU", "TAKE"],
+      "clip": "assets/signs/medications.mp4",
+      "coverage": "partial",
+      "needs_signer_review": true,
+      "notes": "TAKE was not found as its own sign in the Anysign list."
+    },
+    {
+      "id": "allergies",
+      "category": "assessment",
+      "english": ["Do you have any allergies?", "Are you allergic to anything?"],
+      "gloss_draft": [],
+      "clip": "assets/signs/allergies.mp4",
+      "coverage": "record",
+      "needs_signer_review": true,
+      "notes": "ALLERGY was not in the Anysign list. Must be recorded by a signer."
+    },
+    {
+      "id": "happened_before",
+      "category": "assessment",
+      "english": ["Have you experienced this before?", "Has this happened before?"],
+      "gloss_draft": ["THIS", "HAPPEN", "BEFORE"],
+      "clip": "assets/signs/happened_before.mp4",
+      "coverage": "partial",
+      "needs_signer_review": true,
+      "notes": ""
+    },
+    {
+      "id": "eaten_drunk",
+      "category": "assessment",
+      "english": ["Have you eaten or had anything to drink today?", "Did you eat or drink today?"],
+      "gloss_draft": ["TODAY", "EAT", "DRINK", "FINISH"],
+      "clip": "assets/signs/eaten_drunk.mp4",
+      "coverage": "covered",
+      "needs_signer_review": true,
+      "notes": ""
+    },
+    {
+      "id": "difficulty_breathing",
+      "category": "emergency",
+      "english": ["Are you having difficulty breathing?", "Are you having trouble breathing?"],
+      "gloss_draft": [],
+      "clip": "assets/signs/difficulty_breathing.mp4",
+      "coverage": "record",
+      "needs_signer_review": true,
+      "notes": "BREATHE was not in the Anysign list. Must be recorded by a signer."
+    },
+    {
+      "id": "chest_pain",
+      "category": "emergency",
+      "english": ["Are you experiencing chest pain or pressure?", "Do you have chest pain?"],
+      "gloss_draft": [],
+      "clip": "assets/signs/chest_pain.mp4",
+      "coverage": "record",
+      "needs_signer_review": true,
+      "notes": "CHEST and PAIN were not in the Anysign list. Must be recorded by a signer."
+    },
+    {
+      "id": "lost_consciousness",
+      "category": "emergency",
+      "english": ["Did you lose consciousness or pass out?", "Did you faint?"],
+      "gloss_draft": [],
+      "clip": "assets/signs/lost_consciousness.mp4",
+      "coverage": "record",
+      "needs_signer_review": true,
+      "notes": "Must be recorded by a signer."
+    },
+    {
+      "id": "head_neck_injury",
+      "category": "emergency",
+      "english": ["Did you hit your head or neck?", "Did you injure your head or neck?"],
+      "gloss_draft": [],
+      "clip": "assets/signs/head_neck_injury.mp4",
+      "coverage": "partial",
+      "needs_signer_review": true,
+      "notes": "HEAD was in the Anysign list. HIT and NECK were not."
+    },
+    {
+      "id": "move_limbs",
+      "category": "emergency",
+      "english": ["Can you move your arms and legs normally?", "Can you move your arms and legs?"],
+      "gloss_draft": [],
+      "clip": "assets/signs/move_limbs.mp4",
+      "coverage": "record",
+      "needs_signer_review": true,
+      "notes": "Signer may demonstrate the movement. Must be recorded."
+    }
+  ]
+}
