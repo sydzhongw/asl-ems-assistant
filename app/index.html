@@ -2,15 +2,16 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>SignLink EMS</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none !important}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:#0a1220;color:#e8eef7}
 .screen{display:none;min-height:100vh}.screen.active{display:flex;flex-direction:column}
 #home{align-items:center;justify-content:center;text-align:center;background:radial-gradient(circle at top,#0f2a3d 0%,#0a1220 70%)}
 .logo{font-size:56px;font-weight:700;letter-spacing:-1px}.logo span{color:#00d4aa}
-.subtitle{margin:12px 0 48px;color:#94a3b8;font-size:18px}
+.subtitle{margin:12px 24px 48px;color:#94a3b8;font-size:18px}
 .start-btn{width:200px;height:200px;margin:0 auto;border-radius:50%;border:none;background:linear-gradient(145deg,#00e6b8,#00b38f);color:#04241c;font-size:22px;font-weight:700;cursor:pointer;box-shadow:0 12px 40px rgba(0,230,184,.35);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
 #call{background:#0d1117}
 .header{display:flex;justify-content:space-between;align-items:center;padding:16px 24px;background:#111827;border-bottom:1px solid #1f2937;font-size:15px}
@@ -23,20 +24,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Ar
 .msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:24px}
 .captions{background:#111827;padding:16px 32px;border-top:1px solid #1f2937}
 .caption-label{color:#00d4aa;font-size:13px;margin-bottom:6px}
-.caption-text{font-size:32px;font-weight:600;line-height:1.25}
+.caption-text{font-size:32px;font-weight:600;line-height:1.25;white-space:pre-line}
 .note{color:#fbbf24;font-size:15px;margin-top:6px;min-height:20px}
 .patient{background:#0f1a2b;padding:12px 32px;border-top:1px solid #1f2937}
 .patient .caption-label{color:#7dd3fc}
-#patientText{font-size:24px;font-weight:600;min-height:32px}
-.picker{padding:16px 32px;background:#0d1117}
-.picker h3{font-size:15px;color:#cbd5e1;margin:8px 0}
+#patientText{font-size:20px;font-weight:600;min-height:28px}
+.glosses{color:#7dd3fc;font-size:15px;margin-top:6px;min-height:18px}
+.banner{background:#7f1d1d;color:#fff;padding:12px 32px;font-weight:600}
+.picker{padding:12px 32px;background:#0d1117}
+.picker h3{font-size:15px;color:#cbd5e1;margin:10px 0 8px}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{min-height:44px;padding:0 16px;border-radius:999px;border:1px solid #3a4560;background:#1c2433;color:#e2e8f0;font-size:15px;cursor:pointer}
 .chip.on{border:2px solid #00d4aa;background:#0f3a33}
-.controls{display:flex;justify-content:center;gap:16px;padding:20px;background:#0d1117;flex-wrap:wrap}
+.chip.noclip{opacity:.5;border-style:dashed}
+.controls{display:flex;justify-content:center;gap:12px;padding:20px;background:#0d1117;flex-wrap:wrap}
 .btn{background:#1f2937;color:#fff;border:none;min-height:48px;padding:0 24px;border-radius:50px;font-size:15px;cursor:pointer}
 .btn-end{background:#b91c1c}.btn-primary{background:#00b38f;color:#04241c;font-weight:700}
+.btn.on{background:#16a34a;color:#fff;font-weight:700}
+.btn-help{background:#f97316;color:#1c0a00;font-weight:700}
 .rec{background:#fbbf24;color:#1c1400;font-weight:700}
+.rec.recording{background:#dc2626;color:#fff}
 </style>
 </head>
 <body>
@@ -44,7 +51,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Ar
 <div id="home" class="screen active">
   <div>
     <div class="logo">SignLink <span>EMS</span></div>
-    <div class="subtitle">Connect with ASL support for emergency care</div>
+    <div class="subtitle">A communication aid for EMS and ASL-signing patients</div>
     <button class="start-btn" onclick="startCall()">
       <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
       Start Call
@@ -54,50 +61,67 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Ar
 
 <div id="call" class="screen">
   <div class="header"><div>EMS ASL Translator</div><div class="status">● Connected</div><div id="timer">00:00</div></div>
+  <div class="banner" id="banner" hidden>Human ASL interpreter requested. Keep communicating with gestures and the buttons below.</div>
+
   <div class="videos">
     <div class="video-box"><div class="video-label">Patient</div><video id="cam" autoplay muted playsinline></video><div class="msg" id="camMsg">Patient camera</div></div>
     <div class="video-box"><div class="video-label">ASL Signer</div><video id="signer" muted playsinline hidden></video><div class="msg" id="signerMsg">ASL signer ready</div></div>
   </div>
+
   <div class="captions">
-    <div class="caption-label">ENGLISH (for EMT)</div>
-    <div class="caption-text" id="caption">Waiting for speech or a tapped question</div>
+    <div class="caption-label">ENGLISH (for EMT): what the patient signed (AI translation, confirm with patient)</div>
+    <div class="caption-text" id="caption">Press the yellow Start button, then the patient signs</div>
+    <div class="glosses" id="glosses"></div>
     <div class="note" id="note"></div>
   </div>
+
   <div class="patient">
-    <div class="caption-label">PATIENT SIGNED (prototype translation, confirm with patient)</div>
-    <div id="patientText">Hold the yellow button while the patient signs</div>
+    <div class="caption-label">LAST QUESTION SIGNED TO PATIENT</div>
+    <div id="patientText">None yet. Tap a question or press Speak.</div>
   </div>
+
   <div class="picker" id="picker"></div>
+
   <div class="controls">
     <button class="btn btn-primary" onclick="listen()">Speak</button>
-    <button class="btn rec" id="recBtn">Hold: patient signs</button>
+    <button class="btn" id="liveBtn" onclick="toggleLive()">Live translate: off</button>
+    <button class="btn rec" id="recBtn">Start patient signing</button>
+    <button class="btn btn-help" onclick="requestInterpreter()">Request interpreter</button>
     <button class="btn btn-end" onclick="endCall()">End Call</button>
   </div>
 </div>
 
 <script>
 const $ = id => document.getElementById(id);
-let phrases = [], camStream = null, recorder = null, chunks = [];
+const REC_LABEL = 'Start patient signing';
+let recTimer = null;
+let phrases = [], haveClips = new Set(), camStream = null, recorder = null, chunks = [], sec = 0;
+
 
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active')}
 
-fetch('/data/ems_questions.json').then(r=>r.json()).then(d=>{phrases=d.phrases;renderPicker()})
+// Load phrases and which clips exist
+Promise.all([fetch('/data/ems_questions.json').then(r=>r.json()), fetch('/api/clips').then(r=>r.json()).catch(()=>({have:[]}))])
+  .then(([d,c])=>{phrases=d.phrases;haveClips=new Set(c.have);renderPicker()})
   .catch(()=>{$('note').textContent='Could not load the question list.'});
 
 function renderPicker(){
   const groups=[['assessment','Patient assessment'],['emergency','Emergency questions']];
   $('picker').innerHTML=groups.map(([k,t])=>`<h3>${t}</h3><div class="chips">`+
-    phrases.filter(p=>p.category===k).map(p=>`<button class="chip" data-id="${p.id}">${p.english[0]}</button>`).join('')+`</div>`).join('');
+    phrases.filter(p=>p.category===k).map(p=>`<button class="chip${haveClips.has(p.id)?'':' noclip'}" data-id="${p.id}">${p.english[0]}</button>`).join('')+`</div>`).join('');
   $('picker').querySelectorAll('.chip').forEach(b=>b.onclick=()=>showPhrase(b.dataset.id));
+
 }
 
 function showPhrase(id){
   const p=phrases.find(x=>x.id===id); if(!p) return;
-  document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',c.dataset.id===id));
-  $('caption').textContent=p.english[0]; $('note').textContent='';
-  const v=$('signer'); $('signerMsg').hidden=true; v.hidden=false;
-  v.onerror=()=>{v.hidden=true;$('signerMsg').hidden=false;$('signerMsg').textContent='Clip not recorded yet. Request a human interpreter.'};
-  v.src='/signs/'+id+'.mp4'; v.play().catch(()=>{});
+  document.querySelectorAll('#picker .chip').forEach(c=>c.classList.toggle('on',c.dataset.id===id));
+  $('patientText').textContent=p.english[0]; $('note').textContent='';
+  const v=$('signer'), m=$('signerMsg');
+  const noClip=()=>{v.hidden=true;v.removeAttribute('src');m.hidden=false;m.textContent='Clip not recorded yet. Request a human interpreter.'};
+  if(!haveClips.has(id)) return noClip();
+  m.hidden=true; v.hidden=false; v.onerror=noClip;
+  v.src='/'+p.clip; v.play().catch(()=>{});
 }
 
 function listen(){
@@ -106,12 +130,15 @@ function listen(){
   const rec=new R(); rec.lang='en-US';
   $('note').textContent='Listening...';
   rec.onresult=async e=>{
-    const text=e.results[0][0].transcript; $('caption').textContent=text;
+    const text=e.results[0][0].transcript; $('patientText').textContent=text;
     try{
       const r=await fetch('/api/english-to-asl',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text})});
       const {phrase_id,confidence}=await r.json();
-      if(phrase_id&&confidence>=0.7) showPhrase(phrase_id);
-      else $('note').textContent='No approved phrase matched. Tap a question or request a human interpreter.';
+      if(phrase_id&&confidence>=0.7){
+        const p=phrases.find(x=>x.id===phrase_id);
+        showPhrase(phrase_id);
+        $('note').textContent='Heard: "'+text+'" → Signing: "'+p.english[0]+'"';
+      } else $('note').textContent='No approved phrase matched. Tap a question or request a human interpreter.';
     }catch{$('note').textContent='Could not reach the server. Tap a question instead.'}
   };
   rec.onerror=()=>{$('note').textContent='Could not hear anything. Tap a question instead.'};
@@ -129,29 +156,92 @@ async function startCall(){
     recorder.onstop=sendSigns;
   }catch{$('camMsg').textContent='Camera not available. Allow camera access and reload.'}
 }
-function endCall(){if(camStream)camStream.getTracks().forEach(t=>t.stop());camStream=null;show('home')}
+function endCall(){
+  liveOn=false; $('liveBtn').textContent='Live translate: off'; $('liveBtn').classList.remove('on');
+  if(recorder&&recorder.state==='recording'){recorder.onstop=null;recorder.stop()}
+  clearTimeout(recTimer); rb.textContent=REC_LABEL; rb.classList.remove('recording');
+  if(camStream)camStream.getTracks().forEach(t=>t.stop());
+  camStream=null; $('banner').hidden=true; show('home');
+}
+function requestInterpreter(){$('banner').hidden=false} // demo placeholder: connect to a real VRI service later
 
 const rb=$('recBtn');
-rb.onpointerdown=()=>{if(!recorder||recorder.state!=='inactive')return;chunks=[];recorder.start();rb.textContent='Recording... release to translate'};
-const stopRec=()=>{if(recorder&&recorder.state==='recording'){recorder.stop();rb.textContent='Hold: patient signs'}};
-rb.onpointerup=stopRec; rb.onpointerleave=stopRec;
+function stopRec(){
+  clearTimeout(recTimer);
+  if(recorder&&recorder.state==='recording') recorder.stop();
+  rb.textContent=REC_LABEL; rb.classList.remove('recording');
+}
+rb.onclick=()=>{
+  if(liveOn||!recorder) return;
+  if(recorder.state==='recording') return stopRec();     // second tap: stop and translate
+  chunks=[]; recorder.start();                            // first tap: start recording
+  rb.textContent='Stop patient signing (recording...)'; rb.classList.add('recording');
+  $('caption').textContent='Recording... press Stop when the patient is done'; $('glosses').textContent='';
+  recTimer=setTimeout(stopRec,20000);                     // safety stop after 20 seconds
+};
 
 async function sendSigns(){
-  $('patientText').textContent='Translating...';
+  $('caption').textContent='Reading signs...'; $('glosses').textContent='';
   const blob=new Blob(chunks,{type:recorder.mimeType||'video/webm'});
-  const fr=new FileReader(); fr.readAsDataURL(blob);
+  const fr=new FileReader();
   fr.onloadend=async()=>{
     try{
       const r=await fetch('/api/asl-to-english',{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({video:fr.result.split(',')[1],mimeType:blob.type})});
-      const {text}=await r.json();
-      if(text){$('patientText').textContent=text;speechSynthesis.speak(new SpeechSynthesisUtterance(text))}
-      else $('patientText').textContent='Unclear. Ask the patient to sign again or request a human interpreter.';
-    }catch{$('patientText').textContent='Could not reach the server.'}
+      const {text,glosses,error,reason}=await r.json();
+      if(text){
+        $('caption').textContent=text;
+        $('glosses').textContent=glosses&&glosses.length?'Signs seen: '+glosses.join(' · '):'';
+      } else $('caption').textContent=error?('Server error: '+error):('Unclear'+(reason?' ('+reason+')':'')+'. Ask the patient to sign again, or request a human interpreter.');
+    }catch{$('caption').textContent='Could not reach the server. Ask the patient to sign again.'}
   };
+  fr.readAsDataURL(blob);
 }
 
-let sec=0;
+
+// ---- Live mode: send the camera in short segments and append each translation ----
+let liveOn=false, liveBusy=false, liveRec=null, liveLines=[];
+const LIVE_MS=4000;
+function toggleLive(){
+  if(!camStream){$('note').textContent='Start the camera first.';return}
+  liveOn=!liveOn;
+  $('liveBtn').textContent=liveOn?'Live translate: ON':'Live translate: off';
+  $('liveBtn').classList.toggle('on',liveOn);
+  if(liveOn){liveLines=[];$('caption').textContent='Live: watching for signing...';$('glosses').textContent='';liveCycle()}
+  else if(liveRec&&liveRec.state==='recording') liveRec.stop();
+}
+function liveCycle(){
+  if(!liveOn||!camStream) return;
+  const mt=MediaRecorder.isTypeSupported('video/webm')?'video/webm':'';
+  const rec=new MediaRecorder(camStream,mt?{mimeType:mt}:undefined);
+  const parts=[];
+  rec.ondataavailable=e=>{if(e.data.size)parts.push(e.data)};
+  rec.onstop=()=>{
+    if(liveOn) liveCycle();
+    if(!liveBusy&&parts.length) sendLive(new Blob(parts,{type:rec.mimeType||'video/webm'}));
+  };
+  liveRec=rec; rec.start();
+  setTimeout(()=>{if(rec.state==='recording')rec.stop()},LIVE_MS);
+}
+function sendLive(blob){
+  liveBusy=true;
+  const fr=new FileReader();
+  fr.onloadend=async()=>{
+    try{
+      const r=await fetch('/api/asl-to-english',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({video:fr.result.split(',')[1],mimeType:blob.type,live:true})});
+      const {text,glosses}=await r.json();
+      if(text&&liveOn){
+        liveLines.push(text);
+        $('caption').textContent=liveLines.slice(-3).join('\n');
+        $('glosses').textContent=glosses&&glosses.length?'Latest signs: '+glosses.join(' · '):'';
+      }
+    }catch{}
+    liveBusy=false;
+  };
+  fr.readAsDataURL(blob);
+}
+
 setInterval(()=>{if($('call').classList.contains('active')){sec++;
   $('timer').textContent=String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0')}},1000);
 </script>
