@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Voice to Sign</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Voice to Sign</h1>
+    <label class="key">Gemini API key
+      <input id="key" type="password" placeholder="Paste key (optional for demo mode)" autocomplete="off">
+    </label>
+  </header>
+
+  <main>
+    <section class="stage" aria-label="Sign video">
+      <div class="screen">
+        <video id="v0" playsinline muted></video>
+        <video id="v1" playsinline muted></video>
+        <img id="pic" alt="Fingerspelled letter"> 
+        <p id="empty" class="empty">Press the mic and speak, or type a sentence.</p>
+      </div>
+      <div class="controls">
+        <button id="mic" class="mic" aria-pressed="false">Start speaking</button>
+        <label>Speed
+          <select id="rate">
+            <option value="0.75">0.75x</option>
+            <option value="1" selected>1x</option>
+            <option value="1.25">1.25x</option>
+          </select>
+        </label>
+        <button id="replay" class="ghost" disabled>Replay</button>
+      </div>
+    </section>
+
+    <section class="text" aria-label="Transcript and gloss">
+      <h2>You said</h2>
+      <form id="typed">
+        <input id="typedInput" type="text" placeholder="Or type a sentence, then press Enter">
+      </form>
+      <p id="transcript" class="transcript" aria-live="polite"></p>
+
+      <h2>ASL gloss</h2>
+      <ol id="gloss" class="gloss" aria-live="polite"></ol>
+      <p id="status" class="status" role="status"></p>
+    </section>
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

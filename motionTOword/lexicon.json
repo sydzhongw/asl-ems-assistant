@@ -1,0 +1,90 @@
+{
+  "imageSeconds": 1.2,
+  "signs": {
+    "HELLO":    { "clip": "clips/hello.mp4",    "start": 0.2, "end": 1.1 },
+    "THANK-YOU": "clips/thank-you.mp4",
+    "ME":        "clips/me.mp4",
+    "YOU":      "clips/you.mp4",
+    "NAME":     "clips/name.mp4",
+    "GO":       "clips/go.mp4",
+    "WHAT":     "clips/what.mp4",
+    "WHERE":    "clips/where.mp4",
+    "HELP":     "clips/help.mp4",
+    "HURT":     "clips/hurt.mp4",
+    "BREATHE":  "clips/breathe.mp4",
+    "PAIN":     "clips/pain.mp4",
+    "HAPPEN":   "clips/happen.mp4",
+    "SYMPTOMS": "clips/symptoms.mp4",
+    "DESCRIBE": "clips/describe.mp4",
+    "CAN":      "clips/can.mp4", 
+    "EXPLAIN":  "clips/explain.mp4",
+    "START":    "clips/start.mp4",
+    "HOW":      "clips/how.mp4",
+    "MEDICAL":  "clips/medical.mp4",
+    "CONDITION": "clips/condition.mp4",
+    "TREATMENT": "clips/treatment.mp4",
+    "ALLERGIES": "clips/allergies.mp4",
+    "BEFORE":   "clips/before.mp4",
+    "AFTER":    "clips/after.mp4",
+    "TODAY":    "clips/today.mp4",
+    "YESTERDAY": "clips/yesterday.mp4",
+    "EAT":      "clips/eat.mp4",
+    "DRINK":    "clips/drink.mp4",
+    "DIFFICULT": "clips/difficult.mp4",
+    "EASY":     "clips/easy.mp4",
+    "PRESSURE": "clips/pressure.mp4", 
+    "FAINT":    "clips/faint.mp4", 
+    "HEAD":     "clips/head.mp4", 
+    "NECK":     "clips/neck.mp4", 
+    "ARMS":     "clips/arms.mp4", 
+    "LEGS":     "clips/legs.mp4", 
+    "FEET":     "clips/feet.mp4", 
+    "HANDS":    "clips/hands.mp4", #
+    "FINGERS":  "clips/fingers.mp4", #
+    "TOES":     "clips/toes.mp4", #
+    "EYES":     "clips/eyes.mp4",
+    "EARS":     "clips/ears.mp4",
+    "NOSE":     "clips/nose.mp4",
+    "MOUTH":    "clips/mouth.mp4",
+    "STOMACH":    "clips/stomach.mp4", #
+    "BACK":       "clips/back.mp4", #
+    "LEFT":       "clips/left.mp4",
+    "RIGHT":      "clips/right.mp4"
+    
+    
+
+    
+  },
+  "alphabet": {
+    "A": "clips/alphabet/A.png",
+    "B": "clips/alphabet/B.png",
+    "C": "clips/alphabet/C.png",
+    "D": "clips/alphabet/D.png",
+    "E": "clips/alphabet/E.png",
+    "F": "clips/alphabet/F.png",
+    "G": "clips/alphabet/G.png",
+    "H": "clips/alphabet/H.png",
+    "I": "clips/alphabet/I.png",
+    "J": "clips/alphabet/J.png",
+    "K": "clips/alphabet/K.png",
+    "L": "clips/alphabet/L.png",
+    "M": "clips/alphabet/M.png",
+    "N": "clips/alphabet/N.png",
+    "O": "clips/alphabet/O.png",
+    "P": "clips/alphabet/P.png",
+    "Q": "clips/alphabet/Q.png",
+    "R": "clips/alphabet/R.png",
+    "S": "clips/alphabet/S.png",
+    "T": "clips/alphabet/T.png",
+    "U": "clips/alphabet/U.png",
+    "V": "clips/alphabet/V.png",
+    "W": "clips/alphabet/W.png",
+    "X": "clips/alphabet/X.png",
+    "Y": "clips/alphabet/Y.png",
+    "Z": "clips/alphabet/Z.png"
+    
+    
+    
+    
+  }
+}
