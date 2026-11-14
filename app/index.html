@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SignLink EMS</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Montserrat", "Segoe UI", sans-serif;
+    background: #0a1220;
+    color: #e8eef7;
+    height: 100vh;
+    overflow: hidden;
+  }
+  .screen { display: none; height: 100vh; }
+  .screen.active { display: flex; flex-direction: column; }
+
+  /* HOME */
+  #home {
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: radial-gradient(circle at top, #0f2a3d 0%, #0a1220 70%);
+  }
+  .logo {
+    font-size: 56px;
+    font-weight: 700;
+    letter-spacing: -1px;
+  }
+  .logo span { color: #00d4aa; }
+  .subtitle {
+    margin: 12px 0 48px;
+    color: #94a3b8;
+    font-size: 18px;
+  }
+  .start-btn {
+    width: 200px;
+    height: 200px;
+    margin-left: 80px;
+    border-radius: 50%;
+    border: none;
+    background: linear-gradient(145deg, #00e6b8, #00b38f);
+    color: white;
+    font-size: 22px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 12px 40px rgba(0, 230, 184, 0.35);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .start-btn:hover {
+    transform: scale(1.04);
+    box-shadow: 0 16px 50px rgba(0, 230, 184, 0.45);
+  }
+
+  /* CALL */
+  #call { background: #0d1117; }
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    background: #111827;
+    border-bottom: 1px solid #1f2937;
+    font-size: 15px;
+  }
+  .status { color: #00d4aa; }
+  .videos {
+    flex: 1;
+    display: flex;
+    gap: 16px;
+    padding: 16px;
+  }
+  .video-box {
+    flex: 1;
+    background: #1a2332;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #7dd3fc;
+    font-size: 16px;
+    position: relative;
+  }
+  .video-label {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: rgba(0,0,0,0.55);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+  }
+  .captions {
+    background: #111827;
+    padding: 24px 32px;
+    border-top: 1px solid #1f2937;
+  }
+  .caption-label {
+    color: #00d4aa;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .caption-text {
+    font-size: 36px;
+    font-weight: 600;
+    line-height: 1.25;
+  }
+  .controls {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    padding: 20px;
+    background: #0d1117;
+  }
+  .btn {
+    background: #1f2937;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 50px;
+    font-size: 15px;
+    cursor: pointer;
+  }
+  .btn-end { background: #ef4444; }
+  .btn-primary { background: #00b38f; }
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<div id="home" class="screen active">
+  <div>
+    <div class="logo">SignLink <span>EMS</span></div>
+    <div class="subtitle">Connect with ASL support for emergency care</div>
+    <button class="start-btn" onclick="show('call')">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/>
+      </svg>
+      Start Call
+    </button>
+  </div>
+</div>
+
+<!-- CALL -->
+<div id="call" class="screen">
+  <div class="header">
+    <div>EMS ASL Translator</div>
+    <div class="status">● Connected</div>
+    <div id="timer">00:00</div>
+  </div>
+  <div class="videos">
+    <div class="video-box">
+      <div class="video-label">You (EMT Camera)</div>
+      Patient camera
+    </div>
+    <div class="video-box" id="signerBox">
+      <div class="video-label">AI ASL Interpreter</div>
+      AI Signer ready
+    </div>
+  </div>
+  <div class="captions">
+    <div class="caption-label">ENGLISH (for EMT)</div>
+    <div class="caption-text" id="caption">Waiting for speech...</div>
+  </div>
+  <div class="controls">
+    <button class="btn btn-primary" onclick="nextPhrase()">Speak (demo)</button>
+    <button class="btn btn-end" onclick="show('home')">End Call</button>
+  </div>
+</div>
+
+<script>
+  function show(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  const phrases = [
+    "Where does it hurt?",
+    "Can you breathe okay?",
+    "Point to the pain for me.",
+    "We are taking you to the hospital.",
+    "Are you feeling dizzy?",
+    "Squeeze my hand if you understand."
+  ];
+  let i = 0;
+
+  function nextPhrase() {
+    const text = phrases[i % phrases.length];
+    i++;
+    document.getElementById('caption').textContent = text;
+    document.getElementById('signerBox').innerHTML = 
+      '<div class="video-label">AI ASL Interpreter</div>Signing: ' + text;
+  }
+
+  let sec = 0;
+  setInterval(() => {
+    if (document.getElementById('call').classList.contains('active')) {
+      sec++;
+      const m = String(Math.floor(sec / 60)).padStart(2,'0');
+      const s = String(sec % 60).padStart(2,'0');
+      document.getElementById('timer').textContent = m + ':' + s;
+    }
+  }, 1000);
+</script>
+</body>
+</html>
