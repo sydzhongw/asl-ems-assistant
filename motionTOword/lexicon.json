@@ -1,14 +1,13 @@
 {
-  "imageSeconds": 3.0,
+  "imageSeconds": 2.5,
   "letterSeconds": 0.8,
-  "trimStart": 0.1,
-  "trimEnd": 0.1,
 
   "signs": {
     "HELLO":    "clips/hello.mp4",
     "THANK-YOU": "clips/thank-you.mp4",
     "ME":        "clips/me.mp4",
     "MY":         "clips/my.mp4",
+    "MINE":     "clips/my.mp4",
     "YOU":      "clips/you.mp4",
     "YOUR":     "clips/your.mp4",
     "NAME":     "clips/name.mp4",
@@ -42,6 +41,7 @@
     "AFTER":    "clips/after.mp4",
     "TODAY":    "clips/today.mp4",
     "YESTERDAY": "clips/yesterday.mp4",
+    "HAPPENED": "clips/happen.mp4",
     "EAT":      "clips/eat.mp4",
     "DRINK":    "clips/drink.mp4",
     "DIFFICULT": "clips/difficult.mp4",
@@ -88,7 +88,8 @@
     "NO":         "clips/no.mp4",
     "FEEL":       "clips/feel.mp4",
     "WHY":        "clips/why.mp4",
-    "WHO":        "clips/who.mp4"
+    "WHO":        "clips/who.mp4",
+    "WITH":       "clips/with.mp4"
     
 
     

@@ -52,4 +52,8 @@ button:disabled { opacity: .45; cursor: default; }
 .gloss li.now { background: var(--now); color: #1b2430; border-color: var(--now); }
 .status { color: var(--muted); font-size: .9rem; min-height: 1.4em; }
 .status.err { color: var(--miss); }
+body.embedded { height: 100vh; overflow: hidden; background: #0d1117; }
+body.embedded header, body.embedded .controls, body.embedded .text { display: none; }
+body.embedded main { display: block; height: 100vh; max-width: none; margin: 0; padding: 0; }
+body.embedded .stage, body.embedded .screen { height: 100%; margin: 0; aspect-ratio: auto; border-radius: 0; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }

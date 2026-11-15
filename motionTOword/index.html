@@ -50,6 +50,12 @@
     </section>
   </main>
 
+  <script>
+    if (new URLSearchParams(location.search).has("embed")) {
+      document.body.classList.add("embedded");
+      document.getElementById("empty").textContent = "Waiting for EMS to speak...";
+    }
+  </script>
   <script type="module" src="app.js"></script>
 </body>
 </html>

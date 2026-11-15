@@ -124,4 +124,10 @@ els.typed.addEventListener("submit", (e) => {
 });
 els.replay.addEventListener("click", () => { failed.clear(); player.play(lastItems, Number(els.rate.value)); });
 
-loadLexicon();
+const lexiconReady = loadLexicon();
+
+window.addEventListener("message", (e) => {
+  if (e.origin !== location.origin) return;
+  if (e.data?.type === "say") lexiconReady.then(() => process(String(e.data.text ?? "")));
+  if (e.data?.type === "stop") player.stop();
+});

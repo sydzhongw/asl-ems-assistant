@@ -12,6 +12,8 @@ python3 -m http.server 8000
 Open http://localhost:8000 (the mic and `lexicon.json` need http, not `file://`).
 Paste a Gemini API key in the header. Without a key, typing a sentence still works using simple rule-based gloss.
 
+The EMS app serves this player at `/motionTOword/` and embeds it in the call screen. Spoken text that does not match an approved EMS phrase is sent to the embedded player.
+
 ## Pipeline
 
 | Step | File | What it does |
