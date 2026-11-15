@@ -956,14 +956,14 @@ function blobToBase64(blob) {
 
     reader.onload = () => {
       const result = String(reader.result || "");
-      const commaIndex = result.indexOf(",");
+      const commaIndex = result.indexOf("base64,");
 
       if (commaIndex === -1) {
         reject(new Error("Could not convert video to Base64."));
         return;
       }
 
-      resolve(result.slice(commaIndex + 1));
+      resolve(result.slice(commaIndex + 7));
     };
 
     reader.onerror = () => {

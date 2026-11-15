@@ -66,7 +66,7 @@
           const res = await fetch("/api/asl-to-english", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ video: reader.result.split(",")[1], mimeType: blob.type })
+            body: JSON.stringify({ video: reader.result.slice(reader.result.indexOf("base64,") + 7), mimeType: blob.type })
           });
           const { text } = await res.json();
           if (text) {

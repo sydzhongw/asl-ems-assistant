@@ -304,7 +304,7 @@ async function sendSigns() {
   const blob = new Blob(recChunks, { type: rec.mimeType || "video/webm" });
   if (blob.size < 2000) { pStatus("Nothing was recorded. Try again.", true); return; }
   pStatus("Reading your signs…");
-  const video = await new Promise(r => { const f = new FileReader(); f.onloadend = () => r(String(f.result).split(",")[1]); f.readAsDataURL(blob); });
+  const video = await new Promise(r => { const f = new FileReader(); f.onloadend = () => r(String(f.result).slice(String(f.result).indexOf("base64,") + 7)); f.readAsDataURL(blob); });
   let out = {};
   try { out = await (await fetch("/api/asl-to-english", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ video, mimeType: blob.type }) })).json(); }
   catch { out = { text: null, error: "could not reach the server" }; }
