@@ -45,6 +45,7 @@
     "TREATMENTS": "clips/treatment.mp4",
     "ALLERGY": "clips/allergies.mp4",
     "ALLERGIES": "clips/allergies.mp4",
+    "ALLERGIC REACTION": "clips/allergic-reaction.mp4",
     "BEFORE":   "clips/before.mp4",
     "AFTER":    "clips/after.mp4",
     "TODAY":    "clips/today.mp4",
@@ -112,7 +113,9 @@
     "FAR":        "clips/far.mp4",
     "FALLEN":     "clips/fallen.mp4",
     "INJURED":    "clips/injured.mp4",
-    "CHOKING":    "clips/choking.mp4"
+    "CHOKING":    "clips/choking.mp4",
+    "HAVE":       "clips/have.mp4",
+    "DRINK":"clips/drink.mp4"
 
     
   },
