@@ -10,7 +10,7 @@ export default function Call() {
       <header>EMS ASL Translator • Connected</header>
       <div className="videos">
         <div className="box">You (EMT Camera)</div>
-        <SignerVideo />
+        <SignerVideo phraseId={null} />
       </div>
       <Captions text={caption} />
       <button onClick={() => setCaption("Where does it hurt?")}>
