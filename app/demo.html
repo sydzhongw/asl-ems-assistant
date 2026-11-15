@@ -27,6 +27,18 @@
   .link { background: none; border: 0; color: #94a3b8; margin-top: 18px; cursor: pointer; font-size: 14px; }
 
   #patient { background: #000; }
+  .stage { flex: 1; position: relative; display: flex; gap: 6px; min-height: 0; background: #000; }
+  .pane { flex: 1; position: relative; min-width: 0; background: #0f1c2e; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .pane video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .pane.interp video { object-fit: contain; background: #0f1c2e; }
+  .lbl { position: absolute; left: 10px; bottom: 10px; z-index: 2; background: #000a; border-radius: 99px; padding: 4px 12px; font-size: 13px; }
+  .ph { color: #64748b; font-size: 16px; text-align: center; padding: 20px; }
+  #signText { text-align: center; color: #7dd3fc; padding: 20px; }
+  #signText img, #signText svg { width: min(160px, 40%); max-height: 45%; margin-bottom: 12px; }
+  #signMsg { font-size: 18px; }
+  .selfE { position: absolute; right: 12px; top: 12px; width: 110px; height: 146px; background: #111; border-radius: 12px; overflow: hidden; border: 2px solid #333; }
+  .selfE video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+  @media (max-width: 760px) { .stage { flex-direction: column; } .self { width: 84px; height: 112px; } }
   .signer { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; text-align: center; color: #7dd3fc; font-size: 22px; padding: 24px; background: #0f1c2e; }
   #clip { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #0f1c2e; }
   .pill { position: absolute; top: 14px; left: 14px; font-size: 13px; background: #0008; border-radius: 99px; padding: 6px 12px; color: #86efac; z-index: 3; }
@@ -81,9 +93,21 @@
 </div>
 
 <div id="patient" class="screen">
-  <div class="signer">
-    <video id="clip" muted playsinline hidden></video>
-    <div id="signText">AI Interpreter<br>Waiting for question…</div>
+  <div class="stage">
+    <div class="pane">
+      <video id="emsFeed" autoplay playsinline></video>
+      <div class="ph" id="emsPh">EMS responder will appear here</div>
+      <span class="lbl">EMS responder</span>
+    </div>
+    <div class="pane interp">
+      <video id="clip" muted playsinline hidden></video>
+      <div id="signText">
+        <img id="interpImg" src="assets/interpreter.png" alt="ASL interpreter" onerror="this.hidden=true;document.getElementById('interpSvg').hidden=false">
+        <svg id="interpSvg" hidden viewBox="0 0 120 140" aria-hidden="true"><circle cx="60" cy="32" r="22" fill="#7dd3fc"/><path d="M20 140c0-34 18-58 40-58s40 24 40 58z" fill="#38bdf8"/><circle cx="26" cy="92" r="11" fill="#bae6fd"/><circle cx="94" cy="92" r="11" fill="#bae6fd"/></svg>
+        <div id="signMsg">Waiting for an EMS responder…</div>
+      </div>
+      <span class="lbl">ASL interpreter</span>
+    </div>
     <div class="pill" id="pStatus">Connecting…</div>
     <div class="self"><video id="patientVideo" autoplay playsinline muted></video></div>
   </div>
@@ -106,6 +130,7 @@
         <div id="link">The patient opens this page and taps “I’m the Patient” in the same room. You’ll connect automatically.</div>
       </div>
       <div class="tag" id="vtag" hidden>Patient</div>
+      <div class="selfE"><video id="emsSelf" autoplay playsinline muted></video></div>
     </div>
     <div class="cap">
       <div class="label">Patient signed (ASL → English)</div>
@@ -127,7 +152,7 @@ const QS = [
   { id: "allergies", en: "Do you have any allergies?" }
 ];
 const ANS = ["Yes", "No", "My chest hurts", "I can’t breathe", "Please repeat"];
-let peer, conn, call, stream, room = "demo", role = null, retry, muted = false, videoOff = false;
+let emsMic, peer, conn, call, stream, room = "demo", role = null, retry, muted = false, videoOff = false;
 
 const pid = () => "signlink-" + room + "-patient";
 function go(id) { document.querySelectorAll(".screen").forEach(s => s.classList.remove("active")); $(id).classList.add("active"); }
@@ -162,24 +187,24 @@ async function startPatient() {
   peer.on("connection", c => {
     if (conn && conn.open) { whenOpen(c, () => { c.send({ t: "busy" }); setTimeout(() => c.close(), 300); }); return; }
     conn = c; c.on("data", onData); c.on("close", emsLeft);
-    whenOpen(c, () => { call = peer.call(c.peer, stream); call.on("close", emsLeft); connectedUI(); });
+    whenOpen(c, () => { call = peer.call(c.peer, stream); call.on("close", emsLeft);
+      call.on("stream", s => { const f = $("emsFeed"); f.srcObject = s; $("emsPh").hidden = true; f.play().catch(() => {}); }); connectedUI(); });
   });
 }
 function waitingUI() {
   pStatus("Waiting for an EMS responder…");
-  $("signText").hidden = false; $("signText").innerHTML = "AI Interpreter<br>Waiting for an EMS responder…";
+  $("signMsg").textContent = "Waiting for an EMS responder…"; $("signText").hidden = false;
   $("clip").hidden = true; $("clip").removeAttribute("src");
 }
-function connectedUI() { pStatus("Connected to EMS"); $("signText").innerHTML = "AI Interpreter<br>Waiting for question…"; }
+function connectedUI() { pStatus("Connected to EMS"); $("signMsg").textContent = "Ready to sign for you"; }
 function emsLeft() {
   if (role !== "patient" || !peer || (!conn && !call)) return;
   try { call && call.close(); } catch (e) {}
-  conn = call = null; waitingUI();
+  conn = call = null; $("emsFeed").srcObject = null; $("emsPh").hidden = false; waitingUI();
 }
 function showQuestion(m) {
   const v = $("clip"), t = $("signText");
-  t.hidden = false;
-  t.innerHTML = "AI Interpreter<br>Signing: " + m.en.replace(/</g, "&lt;") + "<br><small style='color:#64748b'>(placeholder, signer clip not found)</small>";
+  t.hidden = false; $("signMsg").textContent = "Signing: " + m.en + " (placeholder, signer clip not found)";
   v.hidden = true; v.onerror = () => { v.hidden = true; t.hidden = false; };
   v.onloadeddata = () => { v.hidden = false; t.hidden = true; v.play().catch(() => {}); };
   v.src = "assets/signs/" + m.id + ".mp4";
@@ -188,16 +213,25 @@ function toggleMute() { if (!stream) return; muted = !muted; stream.getAudioTrac
 function toggleVideo() { if (!stream) return; videoOff = !videoOff; stream.getVideoTracks().forEach(t => t.enabled = !videoOff); $("videoBtn").textContent = videoOff ? "Start Video" : "Video"; }
 
 /* ---------- EMS: joins later, finds the waiting patient ---------- */
-function startEMS() {
+async function startEMS() {
   readRoom(); role = "ems"; go("ems");
+  const audio = { echoCancellation: true, noiseSuppression: true };
+  try { emsMic = await navigator.mediaDevices.getUserMedia({ audio, video: { facingMode: "user" } }); }
+  catch {
+    try { emsMic = await navigator.mediaDevices.getUserMedia({ audio, video: false }); $("sent").textContent = "Camera blocked: the patient can hear you but not see you."; }
+    catch { emsMic = null; $("sent").textContent = "Camera and microphone blocked: the patient can’t see or hear you."; }
+  }
+  if (emsMic) $("emsSelf").srcObject = emsMic;
   $("wroom").textContent = "Room: " + room;
   $("chips").innerHTML = QS.map(q => `<button class="b" data-id="${q.id}">${q.en}</button>`).join("") +
+    `<button class="b" id="micBtn" onclick="toggleEmsMic()">Mute mic</button>` +
+    `<button class="b" id="camBtn" onclick="toggleEmsCam()">Camera off</button>` +
     `<button class="b" style="background:#e11d48" onclick="endCall()">End call</button>`;
   $("chips").querySelectorAll("[data-id]").forEach(b => b.onclick = () => ask(QS.find(q => q.id === b.dataset.id)));
   peer = new Peer();
   peer.on("open", findPatient);
   peer.on("call", c => {
-    call = c; c.answer();
+    call = c; c.answer(emsMic || undefined);
     c.on("stream", s => { $("emsVideo").srcObject = s; $("waiting").hidden = true; $("vtag").hidden = false; eStatus("Patient connected", true); });
     c.on("close", patientLeft);
   });
@@ -220,6 +254,18 @@ function patientLeft() {
   $("cap").textContent = "Waiting…"; $("sent").textContent = "";
   scheduleRetry();
 }
+function toggleEmsMic() {
+  if (!emsMic) return;
+  const on = emsMic.getAudioTracks().some(t => t.enabled);
+  emsMic.getAudioTracks().forEach(t => t.enabled = !on);
+  $("micBtn").textContent = on ? "Unmute mic" : "Mute mic";
+}
+function toggleEmsCam() {
+  if (!emsMic) return;
+  const on = emsMic.getVideoTracks().some(t => t.enabled);
+  emsMic.getVideoTracks().forEach(t => t.enabled = !on);
+  $("camBtn").textContent = on ? "Camera on" : "Camera off";
+}
 function ask(q) {
   if (!conn || !conn.open) { eStatus("No patient connected yet"); return; }
   conn.send({ t: "ask", id: q.id, en: q.en });
@@ -232,6 +278,8 @@ function cleanup() {
   clearTimeout(retry);
   try { if (conn && conn.open) conn.send({ t: "end" }); } catch (e) {}
   if (stream) stream.getTracks().forEach(t => t.stop());
+  if (emsMic) emsMic.getTracks().forEach(t => t.stop());
+  emsMic = null; $("emsFeed").srcObject = null; $("emsSelf").srcObject = null; $("emsPh").hidden = false;
   const p = peer; peer = null; if (p) setTimeout(() => p.destroy(), 200);
   stream = conn = call = null; muted = videoOff = false; role = null;
   $("emsVideo").srcObject = null; $("waiting").hidden = false; $("vtag").hidden = true;
