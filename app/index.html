@@ -1,16 +1,20 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>SignLink EMS</title>
+
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 [hidden]{display:none !important}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:#0a1220;color:#e8eef7}
-.screen{display:none;min-height:100vh}.screen.active{display:flex;flex-direction:column}
+.screen{display:none;min-height:100vh}
+.screen.active{display:flex;flex-direction:column}
 #home{align-items:center;justify-content:center;text-align:center;background:radial-gradient(circle at top,#0f2a3d 0%,#0a1220 70%)}
-.logo{font-size:56px;font-weight:700;letter-spacing:-1px}.logo span{color:#00d4aa}
+.logo{font-size:56px;font-weight:700;letter-spacing:-1px}
+.logo span{color:#00d4aa}
 .subtitle{margin:12px 24px 48px;color:#94a3b8;font-size:18px}
 .start-btn{width:200px;height:200px;margin:0 auto;border-radius:50%;border:none;background:linear-gradient(145deg,#00e6b8,#00b38f);color:#04241c;font-size:22px;font-weight:700;cursor:pointer;box-shadow:0 12px 40px rgba(0,230,184,.35);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
 #call{background:#0d1117}
@@ -44,13 +48,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Ar
 .chip.noclip{opacity:.5;border-style:dashed}
 .controls{display:flex;justify-content:center;gap:12px;padding:20px;background:#0d1117;flex-wrap:wrap}
 .btn{background:#1f2937;color:#fff;border:none;min-height:48px;padding:0 24px;border-radius:50px;font-size:15px;cursor:pointer}
-.btn-end{background:#b91c1c}.btn-primary{background:#00b38f;color:#04241c;font-weight:700}
+.btn-end{background:#b91c1c}
+.btn-primary{background:#00b38f;color:#04241c;font-weight:700}
 .btn.on{background:#16a34a;color:#fff;font-weight:700}
 .btn-help{background:#f97316;color:#1c0a00;font-weight:700}
 .rec{background:#fbbf24;color:#1c1400;font-weight:700}
 .rec.recording{background:#dc2626;color:#fff}
+
+@media(max-width:700px){
+  .videos{height:34vh;min-height:180px;gap:8px;padding:8px}
+  .video-box{font-size:13px}
+  .header{padding:12px;font-size:13px}
+  .caption-text{font-size:24px}
+  .captions,.patient{padding:12px 16px}
+  .picker{padding:12px 16px}
+  .controls{padding:12px;gap:8px}
+  .btn{padding:0 14px;font-size:13px}
+  .logo{font-size:44px}
+}
 </style>
 </head>
+
 <body>
 
 <div id="home" class="screen active">
@@ -58,30 +76,57 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Ar
     <div class="logo">SignLink <span>EMS</span></div>
     <div class="subtitle">A communication aid for EMS and ASL-signing patients</div>
     <button class="start-btn" onclick="startCall()">
-      <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/>
+      </svg>
       Start Call
     </button>
   </div>
 </div>
 
 <div id="call" class="screen">
-  <div class="header"><div>EMS ASL Translator</div><div class="status">● Connected</div><div id="timer">00:00</div></div>
-  <div class="banner" id="banner" hidden>Human ASL interpreter requested. Keep communicating with gestures and the buttons below.</div>
+
+  <div class="header">
+    <div>EMS ASL Translator</div>
+    <div class="status">● Connected</div>
+    <div id="timer">00:00</div>
+  </div>
+
+  <div class="banner" id="banner" hidden>
+    Human ASL interpreter requested. Keep communicating with gestures and the buttons below.
+  </div>
 
   <div class="videos">
-    <div class="video-box"><div class="video-label">Patient</div><video id="cam" autoplay muted playsinline></video><div class="msg" id="camMsg">Patient camera</div></div>
-    <div class="video-box"><div class="video-label">ASL Signer</div><video id="signer" muted playsinline hidden></video><iframe id="motionSigner" src="/motionTOword/?embed=1" title="ASL signs for the patient" hidden></iframe><div class="msg" id="signerMsg">ASL signer ready</div></div>
+
+    <div class="video-box">
+      <div class="video-label">Patient</div>
+      <video id="cam" autoplay muted playsinline></video>
+      <div class="msg" id="camMsg">Patient camera</div>
+    </div>
+
+    <div class="video-box">
+      <div class="video-label">ASL Signer</div>
+      <video id="signer" muted playsinline hidden></video>
+      <iframe id="motionSigner" src="/motionTOword/?embed=1" title="ASL signs for the patient" hidden></iframe>
+      <div class="msg" id="signerMsg">ASL signer ready</div>
+    </div>
+
     <div class="video-box responder-box" id="responderBox" hidden>
       <div class="video-label">EMS responder</div>
       <video id="responder" autoplay playsinline></video>
       <div class="responder-wave" id="responderWave" aria-hidden="true"></div>
       <div class="msg" id="responderMsg">Responder view ready</div>
     </div>
+
   </div>
 
   <div class="captions">
-    <div class="caption-label">ENGLISH (for EMT): what the patient signed (AI translation, confirm with patient)</div>
-    <div class="caption-text" id="caption">Press the yellow Start button, then the patient signs</div>
+    <div class="caption-label">
+      ENGLISH (for EMT): what the patient signed (AI translation, confirm with patient)
+    </div>
+    <div class="caption-text" id="caption">
+      Press the yellow Start button, then the patient signs
+    </div>
     <div class="glosses" id="glosses"></div>
     <div class="note" id="note"></div>
   </div>
@@ -101,408 +146,1100 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Ar
     <button class="btn btn-help" onclick="requestInterpreter()">Request interpreter</button>
     <button class="btn btn-end" onclick="endCall()">End Call</button>
   </div>
+
 </div>
 
 <script>
 const $ = id => document.getElementById(id);
-const REC_LABEL = 'Start patient signing';
+
+const REC_LABEL = "Start patient signing";
 const params = new URLSearchParams(location.search);
-const patientSide = params.get('mode') === 'patient';
-const peerRoom = params.get('room') || 'default-call';
+const patientSide = params.get("mode") === "patient";
+const peerRoom = params.get("room") || "default-call";
+
 let recTimer = null;
-let phrases = [], haveClips = new Set(), camStream = null, recorder = null, chunks = [], sec = 0;
-let liveOn=false, liveBusy=false, liveRec=null, liveLines=[], livePending=null, speechRec=null, ttsOn=true;
-let responderStream=null, responderAudioCtx=null, responderAnalyser=null, responderWaveTimer=null;
-let peerSocket=null, peerConnection=null, peerRole=(patientSide?'patient':'ems');
-const motionFrame = $('motionSigner');
-let motionReady = false, pendingMotionText = null;
+let phrases = [];
+let haveClips = new Set();
+let camStream = null;
+let recorder = null;
+let chunks = [];
+let sec = 0;
 
-if(patientSide){
-  $('responderBox').hidden=false;
+let liveOn = false;
+let liveBusy = false;
+let liveRec = null;
+let liveLines = [];
+let livePending = null;
+
+let speechRec = null;
+let ttsOn = true;
+
+let responderStream = null;
+let responderAudioCtx = null;
+let responderAnalyser = null;
+
+let peerSocket = null;
+let peerConnection = null;
+let peerRole = patientSide ? "patient" : "ems";
+
+const motionFrame = $("motionSigner");
+let motionReady = false;
+let pendingMotionText = null;
+
+if (patientSide) {
+  $("responderBox").hidden = false;
 }
 
-// ---- Motion signer iframe ----
-// The iframe's initial about:blank document already reports readyState "complete",
-// so only treat it as ready once the real page has loaded.
-function frameLoaded(){
-  try{const d=motionFrame.contentDocument;return !!d&&d.readyState==='complete'&&d.location.href!=='about:blank'}catch{return false}
+// ---------------- Motion signer iframe ----------------
+
+function frameLoaded() {
+  try {
+    const d = motionFrame.contentDocument;
+    return !!d && d.readyState === "complete" && d.location.href !== "about:blank";
+  } catch {
+    return false;
+  }
 }
-function markMotionReady(){
-  if(motionReady) return;
-  motionReady=true;
-  if(pendingMotionText!==null) sendMotionText(pendingMotionText);
+
+function markMotionReady() {
+  if (motionReady) return;
+
+  motionReady = true;
+
+  if (pendingMotionText !== null) {
+    sendMotionText(pendingMotionText);
+  }
 }
-motionFrame.addEventListener('load',markMotionReady);
-window.addEventListener('message',e=>{
-  if(e.origin===location.origin&&e.source===motionFrame.contentWindow&&e.data&&e.data.type==='ready') markMotionReady();
+
+motionFrame.addEventListener("load", markMotionReady);
+
+window.addEventListener("message", e => {
+  if (
+    e.origin === location.origin &&
+    e.source === motionFrame.contentWindow &&
+    e.data &&
+    e.data.type === "ready"
+  ) {
+    markMotionReady();
+  }
 });
-if(frameLoaded()) motionReady=true;
 
-function sendMotionText(text){
-  if(!motionReady&&frameLoaded()) motionReady=true;
-  if(!motionReady||!motionFrame.contentWindow){pendingMotionText=text;return}
-  pendingMotionText=null;
-  motionFrame.contentWindow.postMessage({type:'say',text},location.origin);
-}
-function stopMotion(){
-  pendingMotionText=null;
-  if(motionReady&&motionFrame.contentWindow)motionFrame.contentWindow.postMessage({type:'stop'},location.origin);
-}
+if (frameLoaded()) motionReady = true;
 
-function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active')}
+function sendMotionText(text) {
+  if (!motionReady && frameLoaded()) {
+    motionReady = true;
+  }
 
-function sendPeerSignal(payload){
-  if(!peerSocket || peerSocket.readyState !== WebSocket.OPEN) return;
-  peerSocket.send(JSON.stringify({ ...payload, room: peerRoom, mode: peerRole }));
-}
-
-function ensurePeerConnection(stream){
-  if(!window.RTCPeerConnection){
-    $('note').textContent='This browser does not support live peer-to-peer camera streaming.';
+  if (!motionReady || !motionFrame.contentWindow) {
+    pendingMotionText = text;
     return;
   }
-  if(!peerConnection){
-    peerConnection = new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});
+
+  pendingMotionText = null;
+
+  motionFrame.contentWindow.postMessage(
+    { type: "say", text },
+    location.origin
+  );
+}
+
+function stopMotion() {
+  pendingMotionText = null;
+
+  if (motionReady && motionFrame.contentWindow) {
+    motionFrame.contentWindow.postMessage(
+      { type: "stop" },
+      location.origin
+    );
+  }
+}
+
+// ---------------- Screen navigation ----------------
+
+function show(id) {
+  document.querySelectorAll(".screen").forEach(s => {
+    s.classList.remove("active");
+  });
+
+  $(id).classList.add("active");
+}
+
+// ---------------- Peer-to-peer video calling ----------------
+
+function sendPeerSignal(payload) {
+  if (!peerSocket || peerSocket.readyState !== WebSocket.OPEN) return;
+
+  peerSocket.send(JSON.stringify({
+    ...payload,
+    room: peerRoom,
+    mode: peerRole
+  }));
+}
+
+function ensurePeerConnection(stream) {
+  if (!window.RTCPeerConnection) {
+    $("note").textContent =
+      "This browser does not support live peer-to-peer camera streaming.";
+    return;
+  }
+
+  if (!peerConnection) {
+    peerConnection = new RTCPeerConnection({
+      iceServers: [
+        { urls: "stun:stun.l.google.com:19302" }
+      ]
+    });
+
     peerConnection.ontrack = event => {
-      const remoteStream = event.streams && event.streams[0] ? event.streams[0] : new MediaStream([event.track]);
-      if(patientSide){
-        $('responder').srcObject = remoteStream;
-        $('responderMsg').hidden = true;
+      const remoteStream =
+        event.streams && event.streams[0]
+          ? event.streams[0]
+          : new MediaStream([event.track]);
+
+      if (patientSide) {
+        $("responder").srcObject = remoteStream;
+        $("responderMsg").hidden = true;
       } else {
-        $('cam').srcObject = remoteStream;
-        $('camMsg').hidden = true;
+        $("cam").srcObject = remoteStream;
+        $("camMsg").hidden = true;
       }
     };
+
     peerConnection.onicecandidate = event => {
-      if(event.candidate) sendPeerSignal({type:'candidate', candidate:event.candidate.toJSON()});
+      if (event.candidate) {
+        sendPeerSignal({
+          type: "candidate",
+          candidate: event.candidate.toJSON()
+        });
+      }
     };
   }
-  if(stream){
+
+  if (stream) {
     stream.getTracks().forEach(track => {
-      const existing = peerConnection.getSenders().some(sender => sender.track === track);
-      if(!existing) peerConnection.addTrack(track, stream);
+      const existing = peerConnection.getSenders().some(
+        sender => sender.track === track
+      );
+
+      if (!existing) {
+        peerConnection.addTrack(track, stream);
+      }
     });
   }
+
   return peerConnection;
 }
 
-async function startPeerStreaming(stream){
+async function startPeerStreaming(stream) {
   const connection = ensurePeerConnection(stream);
-  if(!connection || !window.WebSocket) return;
-  const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  if(!peerSocket){
-    peerSocket = new WebSocket(`${protocol}://${location.host}/ws?room=${encodeURIComponent(peerRoom)}&mode=${encodeURIComponent(peerRole)}`);
+
+  if (!connection || !window.WebSocket) return;
+
+  const protocol = location.protocol === "https:" ? "wss" : "ws";
+
+  if (!peerSocket) {
+    peerSocket = new WebSocket(
+      `${protocol}://${location.host}/ws?room=${encodeURIComponent(peerRoom)}&mode=${encodeURIComponent(peerRole)}`
+    );
+
     peerSocket.onopen = async () => {
-      if(peerRole === 'ems' && connection.signalingState !== 'closed') {
+      if (
+        peerRole === "ems" &&
+        connection.signalingState !== "closed"
+      ) {
         const offer = await connection.createOffer();
         await connection.setLocalDescription(offer);
-        sendPeerSignal({type:'offer', sdp:offer.sdp});
+
+        sendPeerSignal({
+          type: "offer",
+          sdp: offer.sdp
+        });
       }
     };
-    peerSocket.onmessage = async (event) => {
-      const message = JSON.parse(event.data || '{}');
-      if(message.room !== peerRoom || message.mode === peerRole) return;
-      if(message.type === 'offer') {
-        await connection.setRemoteDescription(new RTCSessionDescription({type:'offer', sdp:message.sdp}));
+
+    peerSocket.onmessage = async event => {
+      const message = JSON.parse(event.data || "{}");
+
+      if (message.room !== peerRoom || message.mode === peerRole) {
+        return;
+      }
+
+      if (message.type === "offer") {
+        await connection.setRemoteDescription(
+          new RTCSessionDescription({
+            type: "offer",
+            sdp: message.sdp
+          })
+        );
+
         const answer = await connection.createAnswer();
         await connection.setLocalDescription(answer);
-        sendPeerSignal({type:'answer', sdp:answer.sdp});
-      } else if(message.type === 'answer') {
-        await connection.setRemoteDescription(new RTCSessionDescription({type:'answer', sdp:message.sdp}));
-      } else if(message.type === 'candidate' && message.candidate) {
-        try { await connection.addIceCandidate(new RTCIceCandidate(message.candidate)); } catch(e) {}
+
+        sendPeerSignal({
+          type: "answer",
+          sdp: answer.sdp
+        });
+
+      } else if (message.type === "answer") {
+        await connection.setRemoteDescription(
+          new RTCSessionDescription({
+            type: "answer",
+            sdp: message.sdp
+          })
+        );
+
+      } else if (message.type === "candidate" && message.candidate) {
+        try {
+          await connection.addIceCandidate(
+            new RTCIceCandidate(message.candidate)
+          );
+        } catch (e) {
+          console.warn("Could not add ICE candidate:", e);
+        }
       }
     };
   }
-  if(peerSocket.readyState === WebSocket.OPEN && peerRole === 'ems') {
+
+  if (
+    peerSocket.readyState === WebSocket.OPEN &&
+    peerRole === "ems"
+  ) {
     const offer = await connection.createOffer();
     await connection.setLocalDescription(offer);
-    sendPeerSignal({type:'offer', sdp:offer.sdp});
+
+    sendPeerSignal({
+      type: "offer",
+      sdp: offer.sdp
+    });
   }
 }
 
-function buildResponderWave(){
-  const wave=$('responderWave');
-  if(!wave || wave.children.length) return;
-  for(let i=0;i<20;i++){
-    const bar=document.createElement('span');
-    bar.className='wave-bar';
-    bar.style.height='12%';
+// ---------------- Responder audio visualization ----------------
+
+function buildResponderWave() {
+  const wave = $("responderWave");
+
+  if (!wave || wave.children.length) return;
+
+  for (let i = 0; i < 20; i++) {
+    const bar = document.createElement("span");
+    bar.className = "wave-bar";
+    bar.style.height = "12%";
     wave.appendChild(bar);
   }
 }
 
-function animateResponderWave(){
-  const bars=[...document.querySelectorAll('.wave-bar')];
-  if(!bars.length) return;
-  const analyser=responderAnalyser;
-  if(!analyser){
-    bars.forEach((bar,i)=>{
-      const h=12 + ((i*7)%30);
-      bar.style.height=`${h}%`;
+function animateResponderWave() {
+  const bars = [...document.querySelectorAll(".wave-bar")];
+
+  if (!bars.length) return;
+
+  const analyser = responderAnalyser;
+
+  if (!analyser) {
+    bars.forEach((bar, i) => {
+      const h = 12 + ((i * 7) % 30);
+      bar.style.height = `${h}%`;
     });
     return;
   }
-  const data=new Uint8Array(analyser.frequencyBinCount);
+
+  const data = new Uint8Array(analyser.frequencyBinCount);
   analyser.getByteFrequencyData(data);
-  bars.forEach((bar,index)=>{
-    const value=data[index*2]||0;
-    const height=Math.max(18, (value/255)*100);
-    bar.style.height=`${height}%`;
+
+  bars.forEach((bar, index) => {
+    const value = data[index * 2] || 0;
+    const height = Math.max(18, (value / 255) * 100);
+    bar.style.height = `${height}%`;
   });
 }
 
-async function startResponderFeed(){
-  if(!patientSide) return;
+async function startResponderFeed() {
+  if (!patientSide) return;
+
   buildResponderWave();
-  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
-    $('responderMsg').textContent='Responder camera is unavailable in this browser.';
+
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    $("responderMsg").textContent =
+      "Responder camera is unavailable in this browser.";
     return;
   }
-  try{
-    responderStream = await navigator.mediaDevices.getUserMedia({video:true,audio:true});
-    $('responder').srcObject=responderStream;
-    $('responder').hidden=false;
-    $('responderMsg').hidden=true;
 
-    const AudioCtor = window.AudioContext || window.webkitAudioContext;
-    if(AudioCtor){
+  try {
+    responderStream = await navigator.mediaDevices.getUserMedia({
+      video: true,
+      audio: true
+    });
+
+    $("responder").srcObject = responderStream;
+    $("responder").hidden = false;
+    $("responderMsg").hidden = true;
+
+    const AudioCtor =
+      window.AudioContext || window.webkitAudioContext;
+
+    if (AudioCtor) {
       responderAudioCtx = new AudioCtor();
-      const source = responderAudioCtx.createMediaStreamSource(responderStream);
+
+      const source =
+        responderAudioCtx.createMediaStreamSource(responderStream);
+
       responderAnalyser = responderAudioCtx.createAnalyser();
       responderAnalyser.fftSize = 256;
+
       source.connect(responderAnalyser);
     }
 
-    const tick=()=>{animateResponderWave(); if(patientSide && responderStream) requestAnimationFrame(tick)};
+    const tick = () => {
+      animateResponderWave();
+
+      if (patientSide && responderStream) {
+        requestAnimationFrame(tick);
+      }
+    };
+
     requestAnimationFrame(tick);
-  }catch{
-    $('responderMsg').textContent='Allow camera/mic access to show the EMS responder.';
-    $('responderMsg').hidden=false;
+
+  } catch {
+    $("responderMsg").textContent =
+      "Allow camera/mic access to show the EMS responder.";
+    $("responderMsg").hidden = false;
   }
 }
 
-// ---- Read-aloud (ASL to speech) ----
-function speak(text, queue = false){
-  if(!ttsOn || !text || !('speechSynthesis' in window)) return;
-  if(!queue) speechSynthesis.cancel();
-  const u=new SpeechSynthesisUtterance(String(text));
-  u.lang='en-US';
-  u.rate=0.95;
-  u.volume=1;
-  speechSynthesis.speak(u);
+// ---------------- Read-aloud ----------------
+
+function speak(text, queue = false) {
+  if (!ttsOn || !text || !("speechSynthesis" in window)) return;
+
+  if (!queue) {
+    speechSynthesis.cancel();
+  }
+
+  const utterance = new SpeechSynthesisUtterance(String(text));
+
+  utterance.lang = "en-US";
+  utterance.rate = 0.95;
+  utterance.volume = 1;
+
+  speechSynthesis.speak(utterance);
 }
-function announceTranslation(text, queue = false){
-  if(!text) return;
-  if(!('speechSynthesis' in window)){
-    $('note').textContent='Read aloud is not supported in this browser.';
+
+function announceTranslation(text, queue = false) {
+  if (!text) return;
+
+  if (!("speechSynthesis" in window)) {
+    $("note").textContent =
+      "Read aloud is not supported in this browser.";
     return;
   }
+
   speak(text, queue);
 }
-function toggleTTS(){
-  ttsOn=!ttsOn;
-  $('ttsBtn').textContent='Read aloud: '+(ttsOn?'ON':'off');
-  $('ttsBtn').classList.toggle('on',ttsOn);
-  if(!ttsOn&&'speechSynthesis' in window) speechSynthesis.cancel();
+
+function toggleTTS() {
+  ttsOn = !ttsOn;
+
+  $("ttsBtn").textContent = "Read aloud: " + (ttsOn ? "ON" : "off");
+  $("ttsBtn").classList.toggle("on", ttsOn);
+
+  if (!ttsOn && "speechSynthesis" in window) {
+    speechSynthesis.cancel();
+  }
 }
 
-// ---- Load phrases and which clips exist ----
-Promise.all([fetch('/data/ems_questions.json').then(r=>r.json()), fetch('/api/clips').then(r=>r.json()).catch(()=>({have:[]}))])
-  .then(([d,c])=>{phrases=d.phrases;haveClips=new Set(c.have||[]);renderPicker()})
-  .catch(()=>{$('note').textContent='Could not load the question list.'});
+// ---------------- Load EMS questions and available clips ----------------
 
-function renderPicker(){
-  const titles={assessment:'Patient assessment',emergency:'Emergency questions'};
-  const cats=[...new Set(phrases.map(p=>p.category))];   // show every category, not just two
-  $('picker').innerHTML=cats.map(k=>{
-    const t=titles[k]||(String(k).charAt(0).toUpperCase()+String(k).slice(1));
-    return `<h3>${t}</h3><div class="chips">`+
-      phrases.filter(p=>p.category===k).map(p=>`<button class="chip${haveClips.has(p.id)?'':' noclip'}" data-id="${p.id}">${p.english[0]}</button>`).join('')+`</div>`;
-  }).join('');
-  $('picker').querySelectorAll('.chip').forEach(b=>b.onclick=()=>showPhrase(b.dataset.id));
+Promise.all([
+  fetch("/data/ems_questions.json").then(r => r.json()),
+  fetch("/api/clips").then(r => r.json()).catch(() => ({ have: [] }))
+])
+.then(([d, c]) => {
+  phrases = d.phrases;
+  haveClips = new Set(c.have || []);
+  renderPicker();
+})
+.catch(() => {
+  $("note").textContent = "Could not load the question list.";
+});
+
+// ---------------- Render question buttons ----------------
+
+function renderPicker() {
+  const titles = {
+    assessment: "Patient assessment",
+    emergency: "Emergency questions"
+  };
+
+  const cats = [...new Set(phrases.map(p => p.category))];
+
+  $("picker").innerHTML = cats.map(k => {
+    const title =
+      titles[k] ||
+      (String(k).charAt(0).toUpperCase() + String(k).slice(1));
+
+    return `<h3>${title}</h3><div class="chips">` +
+      phrases
+        .filter(p => p.category === k)
+        .map(p =>
+          `<button class="chip${haveClips.has(p.id) ? "" : " noclip"}" data-id="${p.id}">${p.english[0]}</button>`
+        )
+        .join("") +
+      `</div>`;
+  }).join("");
+
+  $("picker").querySelectorAll(".chip").forEach(button => {
+    button.onclick = () => showPhrase(button.dataset.id);
+  });
 }
 
-function showPhrase(id){
-  const p=phrases.find(x=>x.id===id); if(!p) return;
-  stopMotion(); motionFrame.hidden=true;
-  document.querySelectorAll('#picker .chip').forEach(c=>c.classList.toggle('on',c.dataset.id===id));
-  $('patientText').textContent=p.english[0]; $('note').textContent='';
-  const v=$('signer'), m=$('signerMsg');
-  const noClip=()=>{v.hidden=true;v.removeAttribute('src');m.hidden=false;m.textContent='Clip not recorded yet. Request a human interpreter.'};
-  if(!haveClips.has(id)) return noClip();
-  m.hidden=true; v.hidden=false; v.onerror=noClip;
-  v.src='/'+String(p.clip).replace(/^\/+/,'');   // avoid "//path" being read as another host
-  v.play().catch(()=>{});
+// ---------------- Display approved ASL phrase ----------------
+
+function showPhrase(id) {
+  const phrase = phrases.find(x => x.id === id);
+
+  if (!phrase) return;
+
+  stopMotion();
+  motionFrame.hidden = true;
+
+  document.querySelectorAll("#picker .chip").forEach(chip => {
+    chip.classList.toggle("on", chip.dataset.id === id);
+  });
+
+  $("patientText").textContent = phrase.english[0];
+  $("note").textContent = "";
+
+  const video = $("signer");
+  const message = $("signerMsg");
+
+  const noClip = () => {
+    video.hidden = true;
+    video.removeAttribute("src");
+
+    message.hidden = false;
+    message.textContent =
+      "Clip not recorded yet. Request a human interpreter.";
+  };
+
+  if (!haveClips.has(id)) {
+    return noClip();
+  }
+
+  message.hidden = true;
+  video.hidden = false;
+  video.onerror = noClip;
+
+  video.src = "/" + String(phrase.clip).replace(/^\/+/, "");
+  video.play().catch(() => {});
 }
 
-function showMotion(text){
-  const v=$('signer');
-  v.pause(); v.onerror=null; v.removeAttribute('src'); v.hidden=true;
-  motionFrame.hidden=false; $('signerMsg').hidden=true;
-  setTimeout(()=>sendMotionText(text),50);   // let the iframe become visible first
+// ---------------- Motion signer ----------------
+
+function showMotion(text) {
+  const video = $("signer");
+
+  video.pause();
+  video.onerror = null;
+  video.removeAttribute("src");
+  video.hidden = true;
+
+  motionFrame.hidden = false;
+  $("signerMsg").hidden = true;
+
+  setTimeout(() => sendMotionText(text), 50);
 }
 
-// ---- Speech to ASL ----
-function listen(){
-  const R=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!R){$('note').textContent='Speech is not supported in this browser. Use Chrome or tap a question.';return}
-  if(speechRec){try{speechRec.abort()}catch{}speechRec=null}   // one recognizer at a time
-  if('speechSynthesis' in window) speechSynthesis.cancel();    // don't let read-aloud feed the mic
-  const rec=new R(); rec.lang='en-US'; rec.interimResults=false; rec.maxAlternatives=1;
-  speechRec=rec;
-  $('note').textContent='Listening...'; $('speakBtn').textContent='Listening...';
-  let gotResult=false;
-  rec.onresult=async e=>{
-    gotResult=true;
-    const text=e.results[0][0].transcript; $('patientText').textContent=text;
-    try{
-      const r=await fetch('/api/english-to-asl',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text})});
-      if(!r.ok) throw new Error('bad status');
-      const {phrase_id,confidence}=await r.json();
-      const p=phrases.find(x=>x.id===phrase_id);
-      if(p&&confidence>=0.7){
+// ---------------- Speech recognition: EMT -> ASL ----------------
+
+function listen() {
+  const Recognition =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (!Recognition) {
+    $("note").textContent =
+      "Speech is not supported in this browser. Use Chrome or tap a question.";
+    return;
+  }
+
+  if (speechRec) {
+    try {
+      speechRec.abort();
+    } catch {}
+
+    speechRec = null;
+  }
+
+  if ("speechSynthesis" in window) {
+    speechSynthesis.cancel();
+  }
+
+  const recognition = new Recognition();
+
+  recognition.lang = "en-US";
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+
+  speechRec = recognition;
+
+  $("note").textContent = "Listening...";
+  $("speakBtn").textContent = "Listening...";
+
+  let gotResult = false;
+
+  recognition.onresult = async e => {
+    gotResult = true;
+
+    const text = e.results[0][0].transcript;
+    $("patientText").textContent = text;
+
+    try {
+      const response = await fetch("/api/english-to-asl", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ text })
+      });
+
+      if (!response.ok) {
+        throw new Error("Server returned an error.");
+      }
+
+      const { phrase_id, confidence } = await response.json();
+
+      const phrase = phrases.find(x => x.id === phrase_id);
+
+      if (phrase && confidence >= 0.7) {
         showPhrase(phrase_id);
-        $('note').textContent='Heard: "'+text+'" → Signing: "'+p.english[0]+'"';
+
+        $("note").textContent =
+          `Heard: "${text}" → Signing: "${phrase.english[0]}"`;
       } else {
         showMotion(text);
-        $('note').textContent='No approved phrase matched. Playing word-level ASL signs.';
+
+        $("note").textContent =
+          "No approved phrase matched. Playing word-level ASL signs.";
       }
-    }catch{
+
+    } catch {
       showMotion(text);
-      $('note').textContent='Could not match an approved phrase. Playing word-level ASL signs.';
+
+      $("note").textContent =
+        "Could not match an approved phrase. Playing word-level ASL signs.";
     }
   };
-  rec.onerror=e=>{
-    const msgs={'not-allowed':'Microphone blocked. Allow mic access (needs https or localhost).','service-not-allowed':'Microphone blocked. Allow mic access (needs https or localhost).','no-speech':'Did not hear anything. Press Speak and try again.','audio-capture':'No microphone found.','network':'Speech recognition needs an internet connection in Chrome.'};
-    $('note').textContent=(msgs[e.error]||'Could not hear anything.')+' You can also tap a question.';
-  };
-  rec.onend=()=>{
-    $('speakBtn').textContent='Speak'; speechRec=null;
-    if(!gotResult&&$('note').textContent==='Listening...') $('note').textContent='Did not hear anything. Press Speak and try again.';
-  };
-  try{rec.start()}catch{$('speakBtn').textContent='Speak';speechRec=null}
-}
 
-// ---- Call lifecycle ----
-async function startCall(){
-  show('call'); sec=0; chunks=[];
-  if(patientSide){ startResponderFeed(); }
-  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
-    $('camMsg').textContent='Camera needs https or localhost.'; return;
+  recognition.onerror = e => {
+    const messages = {
+      "not-allowed": "Microphone blocked. Allow mic access (needs https or localhost).",
+      "service-not-allowed": "Microphone blocked. Allow mic access (needs https or localhost).",
+      "no-speech": "Did not hear anything. Press Speak and try again.",
+      "audio-capture": "No microphone found.",
+      "network": "Speech recognition needs an internet connection in Chrome."
+    };
+
+    $("note").textContent =
+      (messages[e.error] || "Could not hear anything.") +
+      " You can also tap a question.";
+  };
+
+  recognition.onend = () => {
+    $("speakBtn").textContent = "Speak";
+    speechRec = null;
+
+    if (!gotResult && $("note").textContent === "Listening...") {
+      $("note").textContent =
+        "Did not hear anything. Press Speak and try again.";
+    }
+  };
+
+  try {
+    recognition.start();
+  } catch {
+    $("speakBtn").textContent = "Speak";
+    speechRec = null;
   }
-  try{
-    camStream=await navigator.mediaDevices.getUserMedia({video:true,audio:true});
-    $('cam').srcObject=camStream; $('camMsg').hidden=true;
-    startPeerStreaming(camStream);
-    const mt=MediaRecorder.isTypeSupported('video/webm')?'video/webm':'';
-    recorder=new MediaRecorder(camStream,mt?{mimeType:mt}:undefined);
-    recorder.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
-    recorder.onstop=sendSigns;
-  }catch{$('camMsg').hidden=false;$('camMsg').textContent='Camera not available. Allow camera access and reload.'}
 }
-function endCall(){
-  liveOn=false; livePending=null; $('liveBtn').textContent='Live translate: off'; $('liveBtn').classList.remove('on');
-  stopMotion(); motionFrame.hidden=true;
-  if('speechSynthesis' in window) speechSynthesis.cancel();
-  if(speechRec){try{speechRec.abort()}catch{}speechRec=null}
-  if(liveRec&&liveRec.state==='recording') liveRec.stop();
-  if(recorder&&recorder.state==='recording'){recorder.onstop=null;recorder.stop()}
-  recorder=null;
-  clearTimeout(recTimer); rb.textContent=REC_LABEL; rb.classList.remove('recording');
-  if(camStream)camStream.getTracks().forEach(t=>t.stop());
-  camStream=null; $('cam').srcObject=null; $('camMsg').hidden=false; $('camMsg').textContent='Patient camera';
-  $('banner').hidden=true; show('home');
-}
-function requestInterpreter(){$('banner').hidden=false} // demo placeholder: connect to a real VRI service later
 
-// ---- Patient signing: record, then translate ----
-const rb=$('recBtn');
-function stopRec(){
-  clearTimeout(recTimer);
-  if(recorder&&recorder.state==='recording') recorder.stop();
-  rb.textContent=REC_LABEL; rb.classList.remove('recording');
+// ---------------- Start call and camera ----------------
+
+async function startCall() {
+  show("call");
+  sec = 0;
+  chunks = [];
+
+  if (patientSide) {
+    startResponderFeed();
+  }
+
+  if (
+    !navigator.mediaDevices ||
+    !navigator.mediaDevices.getUserMedia
+  ) {
+    $("camMsg").textContent =
+      "Camera needs https or localhost.";
+    return;
+  }
+
+  try {
+    camStream = await navigator.mediaDevices.getUserMedia({
+      video: true,
+      audio: true
+    });
+
+    $("cam").srcObject = camStream;
+    $("camMsg").hidden = true;
+
+    startPeerStreaming(camStream);
+
+    const mimeType =
+      MediaRecorder.isTypeSupported("video/webm")
+        ? "video/webm"
+        : "";
+
+    recorder = new MediaRecorder(
+      camStream,
+      mimeType ? { mimeType } : undefined
+    );
+
+    recorder.ondataavailable = e => {
+      if (e.data && e.data.size) {
+        chunks.push(e.data);
+      }
+    };
+
+    recorder.onstop = sendSigns;
+
+  } catch (error) {
+    console.error("Camera startup failed:", error);
+
+    $("camMsg").hidden = false;
+    $("camMsg").textContent =
+      "Camera not available. Allow camera access and reload.";
+  }
 }
-rb.onclick=()=>{
-  if(!recorder){$('note').textContent='Camera is not running. Allow camera access and reload.';return}
-  if(liveOn){$('note').textContent='Turn off Live translate first.';return}
-  if(recorder.state==='recording') return stopRec();     // second tap: stop and translate
-  chunks=[]; recorder.start();                            // first tap: start recording
-  rb.textContent='Stop patient signing (recording...)'; rb.classList.add('recording');
-  $('caption').textContent='Recording... press Stop when the patient is done'; $('glosses').textContent='';
-  recTimer=setTimeout(stopRec,20000);                     // safety stop after 20 seconds
+
+// ---------------- End call ----------------
+
+function endCall() {
+  liveOn = false;
+  livePending = null;
+
+  $("liveBtn").textContent = "Live translate: off";
+  $("liveBtn").classList.remove("on");
+
+  stopMotion();
+  motionFrame.hidden = true;
+
+  if ("speechSynthesis" in window) {
+    speechSynthesis.cancel();
+  }
+
+  if (speechRec) {
+    try {
+      speechRec.abort();
+    } catch {}
+
+    speechRec = null;
+  }
+
+  if (liveRec && liveRec.state === "recording") {
+    liveRec.stop();
+  }
+
+  if (recorder && recorder.state === "recording") {
+    recorder.onstop = null;
+    recorder.stop();
+  }
+
+  recorder = null;
+
+  clearTimeout(recTimer);
+
+  rb.textContent = REC_LABEL;
+  rb.classList.remove("recording");
+
+  if (camStream) {
+    camStream.getTracks().forEach(track => track.stop());
+  }
+
+  if (responderStream) {
+    responderStream.getTracks().forEach(track => track.stop());
+  }
+
+  if (responderAudioCtx) {
+    responderAudioCtx.close().catch(() => {});
+  }
+
+  if (peerSocket) {
+    peerSocket.close();
+    peerSocket = null;
+  }
+
+  if (peerConnection) {
+    peerConnection.close();
+    peerConnection = null;
+  }
+
+  camStream = null;
+  responderStream = null;
+  responderAudioCtx = null;
+  responderAnalyser = null;
+
+  $("cam").srcObject = null;
+  $("camMsg").hidden = false;
+  $("camMsg").textContent = "Patient camera";
+
+  $("banner").hidden = true;
+
+  show("home");
+}
+
+function requestInterpreter() {
+  $("banner").hidden = false;
+}
+
+// ---------------- Patient video recording ----------------
+
+const rb = $("recBtn");
+
+function stopRec() {
+  clearTimeout(recTimer);
+
+  if (recorder && recorder.state === "recording") {
+    recorder.stop();
+  }
+
+  rb.textContent = REC_LABEL;
+  rb.classList.remove("recording");
+}
+
+rb.onclick = () => {
+  if (!recorder) {
+    $("note").textContent =
+      "Camera is not running. Allow camera access and reload.";
+    return;
+  }
+
+  if (liveOn) {
+    $("note").textContent =
+      "Turn off Live translate first.";
+    return;
+  }
+
+  if (recorder.state === "recording") {
+    return stopRec();
+  }
+
+  chunks = [];
+
+  recorder.start();
+
+  rb.textContent = "Stop patient signing (recording...)";
+  rb.classList.add("recording");
+
+  $("caption").textContent =
+    "Recording... press Stop when the patient is done";
+
+  $("glosses").textContent = "";
+
+  recTimer = setTimeout(stopRec, 20000);
 };
 
-async function sendSigns(){
-  $('caption').textContent='Reading signs...'; $('glosses').textContent='';
-  if(!chunks.length){$('caption').textContent='No video was captured. Try again.';return}
-  const blob=new Blob(chunks,{type:(recorder&&recorder.mimeType)||'video/webm'});
-  const fr=new FileReader();
-  fr.onloadend=async()=>{
-    try{
-      const r=await fetch('/api/asl-to-english',{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({video:fr.result.split(',')[1],mimeType:blob.type})});
-      const {text,glosses,error,reason}=await r.json();
-      if(text){
-        $('caption').textContent=text;
-        $('glosses').textContent=glosses&&glosses.length?'Signs seen: '+glosses.join(' · '):'';
-        announceTranslation(text, false);
-      } else $('caption').textContent=error?('Server error: '+error):('Unclear'+(reason?' ('+reason+')':'')+'. Ask the patient to sign again, or request a human interpreter.');
-    }catch{$('caption').textContent='Could not reach the server. Ask the patient to sign again.'}
-  };
-  fr.readAsDataURL(blob);
-}
+// ---------------- Convert video to Base64 ----------------
 
-// ---- Live mode: send the camera in short segments and append each translation ----
-const LIVE_MS=4000;
-function toggleLive(){
-  if(!camStream){$('note').textContent='Start the camera first.';return}
-  if(recorder&&recorder.state==='recording'){$('note').textContent='Stop patient signing first.';return}
-  liveOn=!liveOn;
-  $('liveBtn').textContent=liveOn?'Live translate: ON':'Live translate: off';
-  $('liveBtn').classList.toggle('on',liveOn);
-  if(liveOn){liveLines=[];livePending=null;$('caption').textContent='Live: watching for signing...';$('glosses').textContent='';liveCycle()}
-  else if(liveRec&&liveRec.state==='recording') liveRec.stop();
-}
-function liveCycle(){
-  if(!liveOn||!camStream) return;
-  const mt=MediaRecorder.isTypeSupported('video/webm')?'video/webm':'';
-  const rec=new MediaRecorder(camStream,mt?{mimeType:mt}:undefined);
-  const parts=[];
-  rec.ondataavailable=e=>{if(e.data.size)parts.push(e.data)};
-  rec.onstop=()=>{
-    if(liveOn) liveCycle();
-    if(!parts.length) return;
-    const blob=new Blob(parts,{type:rec.mimeType||'video/webm'});
-    if(liveBusy) livePending=blob;   // keep the newest segment instead of dropping it
-    else sendLive(blob);
-  };
-  liveRec=rec; rec.start();
-  setTimeout(()=>{if(rec.state==='recording')rec.stop()},LIVE_MS);
-}
-function sendLive(blob){
-  liveBusy=true;
-  const fr=new FileReader();
-  fr.onloadend=async()=>{
-    try{
-      const r=await fetch('/api/asl-to-english',{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({video:fr.result.split(',')[1],mimeType:blob.type,live:true})});
-      const {text,glosses}=await r.json();
-      if(text&&liveOn){
-        liveLines.push(text);
-        $('caption').textContent=liveLines.slice(-3).join('\n');
-        $('glosses').textContent=glosses&&glosses.length?'Latest signs: '+glosses.join(' · '):'';
-        announceTranslation(text, true);   // queue so live translations read in order
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      const result = String(reader.result || "");
+      const commaIndex = result.indexOf(",");
+
+      if (commaIndex === -1) {
+        reject(new Error("Could not convert video to Base64."));
+        return;
       }
-    }catch{}
-    liveBusy=false;
-    if(livePending&&liveOn){const b=livePending;livePending=null;sendLive(b)}
-  };
-  fr.readAsDataURL(blob);
+
+      resolve(result.slice(commaIndex + 1));
+    };
+
+    reader.onerror = () => {
+      reject(new Error("Could not read the recorded video."));
+    };
+
+    reader.readAsDataURL(blob);
+  });
 }
 
-setInterval(()=>{if($('call').classList.contains('active')){sec++;
-  $('timer').textContent=String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0')}},1000);
+// ---------------- Patient signing video -> English ----------------
+
+async function sendSigns() {
+  $("caption").textContent = "Preparing video...";
+  $("glosses").textContent = "";
+  $("note").textContent = "";
+
+  if (!chunks.length) {
+    $("caption").textContent =
+      "No video was captured. Try again.";
+    return;
+  }
+
+  const videoChunks = [...chunks];
+
+  const videoType =
+    (recorder && recorder.mimeType) || "video/webm";
+
+  const blob = new Blob(videoChunks, {
+    type: videoType
+  });
+
+  if (!blob.size) {
+    $("caption").textContent =
+      "The recorded video was empty. Try again.";
+    return;
+  }
+
+  if (blob.size > 9 * 1024 * 1024) {
+    $("caption").textContent =
+      "Video is too large. Please record a shorter clip.";
+    return;
+  }
+
+  try {
+    $("caption").textContent =
+      "Uploading video for translation...";
+
+    const video = await blobToBase64(blob);
+
+    const response = await fetch("/api/asl-to-english", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        video,
+        mimeType: blob.type || "video/webm",
+        live: false
+      })
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        result.error ||
+        result.reason ||
+        `Server error ${response.status}`
+      );
+    }
+
+    if (result.text) {
+      $("caption").textContent = result.text;
+
+      $("glosses").textContent =
+        result.glosses && result.glosses.length
+          ? "Signs seen: " + result.glosses.join(" · ")
+          : "";
+
+      $("note").textContent =
+        "AI translation — confirm the meaning with the patient.";
+
+      announceTranslation(result.text, false);
+
+    } else {
+      $("caption").textContent =
+        result.error
+          ? "Translation error: " + result.error
+          : "No clear signing detected. Please ask the patient to sign again.";
+
+      $("note").textContent =
+        result.reason || "A human interpreter may be needed.";
+    }
+
+  } catch (error) {
+    console.error("Patient video upload failed:", error);
+
+    $("caption").textContent =
+      "Could not translate the video.";
+
+    $("note").textContent = error.message;
+  }
+}
+
+// ---------------- Live translation ----------------
+
+const LIVE_MS = 4000;
+
+function toggleLive() {
+  if (!camStream) {
+    $("note").textContent = "Start the camera first.";
+    return;
+  }
+
+  if (recorder && recorder.state === "recording") {
+    $("note").textContent =
+      "Stop patient signing first.";
+    return;
+  }
+
+  liveOn = !liveOn;
+
+  $("liveBtn").textContent =
+    liveOn ? "Live translate: ON" : "Live translate: off";
+
+  $("liveBtn").classList.toggle("on", liveOn);
+
+  if (liveOn) {
+    liveLines = [];
+    livePending = null;
+
+    $("caption").textContent =
+      "Live: watching for signing...";
+
+    $("glosses").textContent = "";
+
+    liveCycle();
+
+  } else if (liveRec && liveRec.state === "recording") {
+    liveRec.stop();
+  }
+}
+
+function liveCycle() {
+  if (!liveOn || !camStream) return;
+
+  const mimeType =
+    MediaRecorder.isTypeSupported("video/webm")
+      ? "video/webm"
+      : "";
+
+  const rec = new MediaRecorder(
+    camStream,
+    mimeType ? { mimeType } : undefined
+  );
+
+  const parts = [];
+
+  rec.ondataavailable = e => {
+    if (e.data && e.data.size) {
+      parts.push(e.data);
+    }
+  };
+
+  rec.onstop = () => {
+    if (liveOn) {
+      liveCycle();
+    }
+
+    if (!parts.length) return;
+
+    const blob = new Blob(parts, {
+      type: rec.mimeType || "video/webm"
+    });
+
+    if (liveBusy) {
+      livePending = blob;
+    } else {
+      sendLive(blob);
+    }
+  };
+
+  liveRec = rec;
+  rec.start();
+
+  setTimeout(() => {
+    if (rec.state === "recording") {
+      rec.stop();
+    }
+  }, LIVE_MS);
+}
+
+function sendLive(blob) {
+  if (!blob || !blob.size) return;
+
+  liveBusy = true;
+
+  (async () => {
+    try {
+      const video = await blobToBase64(blob);
+
+      const response = await fetch("/api/asl-to-english", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          video,
+          mimeType: blob.type || "video/webm",
+          live: true
+        })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result.error ||
+          result.reason ||
+          `Server error ${response.status}`
+        );
+      }
+
+      if (result.text && liveOn) {
+        liveLines.push(result.text);
+
+        $("caption").textContent =
+          liveLines.slice(-3).join("\n");
+
+        $("glosses").textContent =
+          result.glosses && result.glosses.length
+            ? "Latest signs: " + result.glosses.join(" · ")
+            : "";
+
+        announceTranslation(result.text, true);
+      }
+
+      if (result.error && liveOn) {
+        $("note").textContent = result.error;
+      }
+
+    } catch (error) {
+      console.error("Live translation failed:", error);
+
+      if (liveOn) {
+        $("note").textContent =
+          "Live translation could not reach Gemini.";
+      }
+
+    } finally {
+      liveBusy = false;
+
+      if (livePending && liveOn) {
+        const nextBlob = livePending;
+        livePending = null;
+        sendLive(nextBlob);
+      }
+    }
+  })();
+}
+
+// ---------------- Call timer ----------------
+
+setInterval(() => {
+  if ($("call").classList.contains("active")) {
+    sec++;
+
+    $("timer").textContent =
+      String(Math.floor(sec / 60)).padStart(2, "0") +
+      ":" +
+      String(sec % 60).padStart(2, "0");
+  }
+}, 1000);
+
 </script>
+
 </body>
 </html>
