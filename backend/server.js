@@ -1,6 +1,8 @@
 const express = require("express");
 const fs = require("fs");
+const http = require("http");
 const path = require("path");
+const WebSocket = require("ws");
 const { GoogleGenAI } = require("@google/genai");
 
 const root = path.join(__dirname, "..");
@@ -10,6 +12,43 @@ app.use(express.static(path.join(root, "app")));
 app.use("/data", express.static(path.join(root, "data")));
 app.use("/assets", express.static(path.join(root, "assets")));
 app.use("/motionTOword", express.static(path.join(root, "motionTOword")));
+
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
+const roomPeers = new Map();
+
+wss.on("connection", (ws, req) => {
+  const params = new URL(req.url || "/", "http://localhost");
+  const room = params.searchParams.get("room") || "default-call";
+  const mode = params.searchParams.get("mode") || "ems";
+  const members = roomPeers.get(room) || new Set();
+  members.add(ws);
+  roomPeers.set(room, members);
+  ws.room = room;
+  ws.mode = mode;
+
+  ws.on("message", (raw) => {
+    try {
+      const msg = JSON.parse(raw.toString());
+      if (!msg || !msg.type) return;
+      const payload = { ...msg, room, mode };
+      members.forEach((peer) => {
+        if (peer !== ws && peer.readyState === WebSocket.OPEN) {
+          peer.send(JSON.stringify(payload));
+        }
+      });
+    } catch (e) {
+      console.warn("Bad signaling payload", e.message);
+    }
+  });
+
+  ws.on("close", () => {
+    const peers = roomPeers.get(room);
+    if (!peers) return;
+    peers.delete(ws);
+    if (peers.size === 0) roomPeers.delete(room);
+  });
+});
 
 const { phrases } = JSON.parse(fs.readFileSync(path.join(root, "data/ems_questions.json"), "utf8"));
 const ids = new Set(phrases.map((p) => p.id));
@@ -166,4 +205,4 @@ app.post("/api/asl-to-english", async (req, res) => {
 });
 
 const port = process.env.PORT || 3000;
-app.listen(port, () => console.log(`SignLink EMS running at http://localhost:${port}`));
+server.listen(port, () => console.log(`SignLink EMS running at http://localhost:${port}`));

@@ -21,7 +21,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Ar
 .video-box video{width:100%;height:100%;object-fit:contain}
 .video-box iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#0d1117}
 #cam{transform:scaleX(-1)}
+#responder{transform:scaleX(-1)}
 .video-label{position:absolute;top:12px;left:12px;z-index:2;background:rgba(0,0,0,.65);padding:4px 12px;border-radius:20px;font-size:13px}
+.responder-box[hidden]{display:none !important}
+.responder-wave{position:absolute;inset:auto 18px 18px 18px;height:64px;display:flex;align-items:flex-end;justify-content:center;gap:4px;pointer-events:none;z-index:2}
+.wave-bar{flex:1;max-width:8px;height:10%;border-radius:999px;background:linear-gradient(180deg,#67e8f9,#0ea5e9);box-shadow:0 0 10px rgba(103,232,249,.7);transition:height .06s ease}
 .msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:24px}
 .captions{background:#111827;padding:16px 32px;border-top:1px solid #1f2937}
 .caption-label{color:#00d4aa;font-size:13px;margin-bottom:6px}
@@ -67,6 +71,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Ar
   <div class="videos">
     <div class="video-box"><div class="video-label">Patient</div><video id="cam" autoplay muted playsinline></video><div class="msg" id="camMsg">Patient camera</div></div>
     <div class="video-box"><div class="video-label">ASL Signer</div><video id="signer" muted playsinline hidden></video><iframe id="motionSigner" src="/motionTOword/?embed=1" title="ASL signs for the patient" hidden></iframe><div class="msg" id="signerMsg">ASL signer ready</div></div>
+    <div class="video-box responder-box" id="responderBox" hidden>
+      <div class="video-label">EMS responder</div>
+      <video id="responder" autoplay playsinline></video>
+      <div class="responder-wave" id="responderWave" aria-hidden="true"></div>
+      <div class="msg" id="responderMsg">Responder view ready</div>
+    </div>
   </div>
 
   <div class="captions">
@@ -96,11 +106,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Ar
 <script>
 const $ = id => document.getElementById(id);
 const REC_LABEL = 'Start patient signing';
+const params = new URLSearchParams(location.search);
+const patientSide = params.get('mode') === 'patient';
+const peerRoom = params.get('room') || 'default-call';
 let recTimer = null;
 let phrases = [], haveClips = new Set(), camStream = null, recorder = null, chunks = [], sec = 0;
 let liveOn=false, liveBusy=false, liveRec=null, liveLines=[], livePending=null, speechRec=null, ttsOn=true;
+let responderStream=null, responderAudioCtx=null, responderAnalyser=null, responderWaveTimer=null;
+let peerSocket=null, peerConnection=null, peerRole=(patientSide?'patient':'ems');
 const motionFrame = $('motionSigner');
 let motionReady = false, pendingMotionText = null;
+
+if(patientSide){
+  $('responderBox').hidden=false;
+}
 
 // ---- Motion signer iframe ----
 // The iframe's initial about:blank document already reports readyState "complete",
@@ -132,12 +151,154 @@ function stopMotion(){
 
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active')}
 
+function sendPeerSignal(payload){
+  if(!peerSocket || peerSocket.readyState !== WebSocket.OPEN) return;
+  peerSocket.send(JSON.stringify({ ...payload, room: peerRoom, mode: peerRole }));
+}
+
+function ensurePeerConnection(stream){
+  if(!window.RTCPeerConnection){
+    $('note').textContent='This browser does not support live peer-to-peer camera streaming.';
+    return;
+  }
+  if(!peerConnection){
+    peerConnection = new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});
+    peerConnection.ontrack = event => {
+      const remoteStream = event.streams && event.streams[0] ? event.streams[0] : new MediaStream([event.track]);
+      if(patientSide){
+        $('responder').srcObject = remoteStream;
+        $('responderMsg').hidden = true;
+      } else {
+        $('cam').srcObject = remoteStream;
+        $('camMsg').hidden = true;
+      }
+    };
+    peerConnection.onicecandidate = event => {
+      if(event.candidate) sendPeerSignal({type:'candidate', candidate:event.candidate.toJSON()});
+    };
+  }
+  if(stream){
+    stream.getTracks().forEach(track => {
+      const existing = peerConnection.getSenders().some(sender => sender.track === track);
+      if(!existing) peerConnection.addTrack(track, stream);
+    });
+  }
+  return peerConnection;
+}
+
+async function startPeerStreaming(stream){
+  const connection = ensurePeerConnection(stream);
+  if(!connection || !window.WebSocket) return;
+  const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
+  if(!peerSocket){
+    peerSocket = new WebSocket(`${protocol}://${location.host}/ws?room=${encodeURIComponent(peerRoom)}&mode=${encodeURIComponent(peerRole)}`);
+    peerSocket.onopen = async () => {
+      if(peerRole === 'ems' && connection.signalingState !== 'closed') {
+        const offer = await connection.createOffer();
+        await connection.setLocalDescription(offer);
+        sendPeerSignal({type:'offer', sdp:offer.sdp});
+      }
+    };
+    peerSocket.onmessage = async (event) => {
+      const message = JSON.parse(event.data || '{}');
+      if(message.room !== peerRoom || message.mode === peerRole) return;
+      if(message.type === 'offer') {
+        await connection.setRemoteDescription(new RTCSessionDescription({type:'offer', sdp:message.sdp}));
+        const answer = await connection.createAnswer();
+        await connection.setLocalDescription(answer);
+        sendPeerSignal({type:'answer', sdp:answer.sdp});
+      } else if(message.type === 'answer') {
+        await connection.setRemoteDescription(new RTCSessionDescription({type:'answer', sdp:message.sdp}));
+      } else if(message.type === 'candidate' && message.candidate) {
+        try { await connection.addIceCandidate(new RTCIceCandidate(message.candidate)); } catch(e) {}
+      }
+    };
+  }
+  if(peerSocket.readyState === WebSocket.OPEN && peerRole === 'ems') {
+    const offer = await connection.createOffer();
+    await connection.setLocalDescription(offer);
+    sendPeerSignal({type:'offer', sdp:offer.sdp});
+  }
+}
+
+function buildResponderWave(){
+  const wave=$('responderWave');
+  if(!wave || wave.children.length) return;
+  for(let i=0;i<20;i++){
+    const bar=document.createElement('span');
+    bar.className='wave-bar';
+    bar.style.height='12%';
+    wave.appendChild(bar);
+  }
+}
+
+function animateResponderWave(){
+  const bars=[...document.querySelectorAll('.wave-bar')];
+  if(!bars.length) return;
+  const analyser=responderAnalyser;
+  if(!analyser){
+    bars.forEach((bar,i)=>{
+      const h=12 + ((i*7)%30);
+      bar.style.height=`${h}%`;
+    });
+    return;
+  }
+  const data=new Uint8Array(analyser.frequencyBinCount);
+  analyser.getByteFrequencyData(data);
+  bars.forEach((bar,index)=>{
+    const value=data[index*2]||0;
+    const height=Math.max(18, (value/255)*100);
+    bar.style.height=`${height}%`;
+  });
+}
+
+async function startResponderFeed(){
+  if(!patientSide) return;
+  buildResponderWave();
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+    $('responderMsg').textContent='Responder camera is unavailable in this browser.';
+    return;
+  }
+  try{
+    responderStream = await navigator.mediaDevices.getUserMedia({video:true,audio:true});
+    $('responder').srcObject=responderStream;
+    $('responder').hidden=false;
+    $('responderMsg').hidden=true;
+
+    const AudioCtor = window.AudioContext || window.webkitAudioContext;
+    if(AudioCtor){
+      responderAudioCtx = new AudioCtor();
+      const source = responderAudioCtx.createMediaStreamSource(responderStream);
+      responderAnalyser = responderAudioCtx.createAnalyser();
+      responderAnalyser.fftSize = 256;
+      source.connect(responderAnalyser);
+    }
+
+    const tick=()=>{animateResponderWave(); if(patientSide && responderStream) requestAnimationFrame(tick)};
+    requestAnimationFrame(tick);
+  }catch{
+    $('responderMsg').textContent='Allow camera/mic access to show the EMS responder.';
+    $('responderMsg').hidden=false;
+  }
+}
+
 // ---- Read-aloud (ASL to speech) ----
-function speak(text,queue){
-  if(!ttsOn||!text||!('speechSynthesis' in window)) return;
+function speak(text, queue = false){
+  if(!ttsOn || !text || !('speechSynthesis' in window)) return;
   if(!queue) speechSynthesis.cancel();
-  const u=new SpeechSynthesisUtterance(text); u.lang='en-US'; u.rate=0.95;
+  const u=new SpeechSynthesisUtterance(String(text));
+  u.lang='en-US';
+  u.rate=0.95;
+  u.volume=1;
   speechSynthesis.speak(u);
+}
+function announceTranslation(text, queue = false){
+  if(!text) return;
+  if(!('speechSynthesis' in window)){
+    $('note').textContent='Read aloud is not supported in this browser.';
+    return;
+  }
+  speak(text, queue);
 }
 function toggleTTS(){
   ttsOn=!ttsOn;
@@ -226,12 +387,14 @@ function listen(){
 // ---- Call lifecycle ----
 async function startCall(){
   show('call'); sec=0; chunks=[];
+  if(patientSide){ startResponderFeed(); }
   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
     $('camMsg').textContent='Camera needs https or localhost.'; return;
   }
   try{
-    camStream=await navigator.mediaDevices.getUserMedia({video:true,audio:false});
+    camStream=await navigator.mediaDevices.getUserMedia({video:true,audio:true});
     $('cam').srcObject=camStream; $('camMsg').hidden=true;
+    startPeerStreaming(camStream);
     const mt=MediaRecorder.isTypeSupported('video/webm')?'video/webm':'';
     recorder=new MediaRecorder(camStream,mt?{mimeType:mt}:undefined);
     recorder.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
@@ -283,7 +446,7 @@ async function sendSigns(){
       if(text){
         $('caption').textContent=text;
         $('glosses').textContent=glosses&&glosses.length?'Signs seen: '+glosses.join(' · '):'';
-        speak(text,false);
+        announceTranslation(text, false);
       } else $('caption').textContent=error?('Server error: '+error):('Unclear'+(reason?' ('+reason+')':'')+'. Ask the patient to sign again, or request a human interpreter.');
     }catch{$('caption').textContent='Could not reach the server. Ask the patient to sign again.'}
   };
@@ -329,7 +492,7 @@ function sendLive(blob){
         liveLines.push(text);
         $('caption').textContent=liveLines.slice(-3).join('\n');
         $('glosses').textContent=glosses&&glosses.length?'Latest signs: '+glosses.join(' · '):'';
-        speak(text,true);   // queue so lines read in order
+        announceTranslation(text, true);   // queue so live translations read in order
       }
     }catch{}
     liveBusy=false;
