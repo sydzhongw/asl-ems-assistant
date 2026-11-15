@@ -77,6 +77,8 @@
   .big { font-size: 32px; font-weight: 700; margin-top: 10px; line-height: 1.2; }
   .gl { color: #94a3b8; font-size: 13px; margin-top: 8px; }
   .warn { margin-top: 10px; background: #3a2d00; color: #fbbf24; border-radius: 10px; padding: 8px 12px; font-size: 13px; }
+  .listen { font-size: 12px; color: #86efac; margin-bottom: 6px; }
+  .listen.off { color: #fbbf24; }
   .heard { margin-top: 18px; font-size: 14px; color: #cbd5e1; }
   #interim { color: #64748b; font-size: 13px; min-height: 16px; }
   .sent { margin-top: auto; padding-top: 14px; color: #94a3b8; font-size: 13px; }
@@ -157,7 +159,7 @@
       <div class="big" id="cap">Waiting…</div>
       <div class="gl" id="gl"></div>
       <div class="warn" id="warn" hidden></div>
-      <div class="heard"><span class="label">You said</span><div id="heard">Speak, and the signer will sign it.</div><div id="interim"></div></div>
+      <div class="heard"><div id="listen" class="listen">● Listening: your words are being transcribed</div><span class="label">You said</span><div id="heard">Speak, and the signer will sign it.</div><div id="interim"></div></div>
       <div class="sent" id="sent"></div>
     </div>
   </div>
@@ -175,7 +177,7 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const ANS = ["Yes", "No", "My chest hurts", "I can’t breathe", "Please repeat"];
 let phrases = [], haveClips = new Set(), emsMic, peer, conn, call, stream, room = "demo", role = null, retry;
-let muted = false, videoOff = false, sr, srWanted = false, rec, recChunks = [], recTimer;
+let emsMuted = false, muted = false, videoOff = false, sr, srWanted = false, rec, recChunks = [], recTimer;
 
 const pid = () => "signlink-" + room + "-patient";
 function go(id) { document.querySelectorAll(".screen").forEach(s => s.classList.remove("active")); $(id).classList.add("active"); }
@@ -335,8 +337,7 @@ async function startEMS() {
   peer.on("error", e => { if (e.type === "peer-unavailable") scheduleRetry(); else eStatus("Connection problem: " + e.type); });
 }
 function renderChips() {
-  $("chips").innerHTML = phrases.map(p => `<button class="b${playable(p) ? "" : " dim"}" data-id="${esc(p.id)}">${esc(p.english[0])}</button>`).join("") +
-    `<button class="b" id="srBtn" onclick="toggleSpeech()">Speech: on</button>`;
+  $("chips").innerHTML = phrases.map(p => `<button class="b${playable(p) ? "" : " dim"}" data-id="${esc(p.id)}">${esc(p.english[0])}</button>`).join("");
   $("chips").querySelectorAll("[data-id]").forEach(b => b.onclick = () => sayPhrase(phrases.find(p => p.id === b.dataset.id)));
 }
 function findPatient() {
@@ -369,14 +370,17 @@ function sayPhrase(p) {
   if (say({ id: p.id, en: p.english[0], gloss: p.gloss_draft || [], clip: haveClips.has(p.id), approved: true }))
     $("sent").textContent = "Signing to patient: “" + p.english[0] + "”";
 }
-async function handleSpeech(text) {
+/* typed = true for the text box (always allowed); spoken text is dropped while the mic is muted */
+async function handleSpeech(text, typed) {
   if (!text) return;
+  if (!typed && emsMuted) return;
   $("heard").textContent = "“" + text + "”"; $("interim").textContent = "";
   let id = null, conf = 0;
   try {
     const j = await (await fetch("/api/english-to-asl", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }) })).json();
     id = j.phrase_id; conf = j.confidence || 0;
   } catch {}
+  if (!typed && emsMuted) { $("heard").textContent = "Mic muted: nothing is being signed."; return; } // muted while the lookup was running
   const p = id && conf >= 0.7 ? phrases.find(x => x.id === id) : null;
   if (p) return sayPhrase(p);
   const gloss = window.SL ? SL.fallbackGloss(text) : [];
@@ -384,14 +388,29 @@ async function handleSpeech(text) {
   if (say({ en: text, gloss, clip: false, approved: false }))
     $("sent").textContent = "Not an approved phrase, so it’s signed word by word. Confirm with the patient: “" + text + "”";
 }
-function typedSend() { const t = $("typedIn").value.trim(); if (!t) return; $("typedIn").value = ""; handleSpeech(t); }
+function typedSend() { const t = $("typedIn").value.trim(); if (!t) return; $("typedIn").value = ""; handleSpeech(t, true); }
 $("typedIn").addEventListener("keydown", e => { if (e.key === "Enter") typedSend(); });
 
+function setListening(state) {
+  const l = $("listen");
+  l.className = "listen" + (state === true ? "" : " off");
+  l.textContent = state === true ? "● Listening: your words are being transcribed"
+    : state === false ? "Mic muted: nothing is being transcribed"
+    : "Speech recognition unavailable: type below";
+}
+/* Mute stops transcription completely; unmute starts it again. */
+function syncSpeech(muting) {
+  emsMuted = muting;
+  if (!sr) return;
+  if (muting) { srWanted = false; try { sr.stop(); } catch (e) {} $("interim").textContent = ""; setListening(false); }
+  else { srWanted = true; try { sr.start(); } catch (e) {} setListening(true); }
+}
 function startListening() {
   const R = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!R) { $("heard").textContent = "Speech recognition isn’t supported in this browser. Type below, or use Chrome."; $("srBtn").hidden = true; return; }
+  if (!R) { $("heard").textContent = "Speech recognition isn’t supported in this browser. Type below, or use Chrome."; setListening(null); return; }
   sr = new R(); sr.lang = "en-US"; sr.continuous = true; sr.interimResults = true;
   sr.onresult = e => {
+    if (emsMuted) return;
     let interim = "";
     for (let i = e.resultIndex; i < e.results.length; i++) {
       const t = e.results[i][0].transcript;
@@ -400,18 +419,16 @@ function startListening() {
     $("interim").textContent = interim ? "… " + interim : "";
   };
   sr.onend = () => { if (srWanted) try { sr.start(); } catch (e) {} };
-  sr.onerror = ev => { if (ev.error === "not-allowed" || ev.error === "service-not-allowed") { srWanted = false; $("heard").textContent = "Speech recognition is blocked. Type below instead."; } };
+  sr.onerror = ev => { if (ev.error === "not-allowed" || ev.error === "service-not-allowed") { srWanted = false; $("heard").textContent = "Speech recognition is blocked. Type below instead."; setListening(null); } };
+  if (emsMuted) { setListening(false); return; }
   srWanted = true; try { sr.start(); } catch (e) {}
-}
-function toggleSpeech() {
-  if (!sr) return;
-  srWanted = !srWanted; $("srBtn").textContent = "Speech: " + (srWanted ? "on" : "off");
-  if (srWanted) { try { sr.start(); } catch (e) {} } else sr.stop();
+  setListening(true);
 }
 function toggleEmsMic() {
-  if (!emsMic) return;
-  const on = emsMic.getAudioTracks().some(t => t.enabled);
-  emsMic.getAudioTracks().forEach(t => t.enabled = !on); setCtl("eMuteBtn", on, on ? "🔇" : "🎙", on ? "Unmute" : "Mute");
+  const mute = !emsMuted;
+  if (emsMic) emsMic.getAudioTracks().forEach(t => t.enabled = !mute); // the patient stops hearing you
+  setCtl("eMuteBtn", mute, mute ? "🔇" : "🎙", mute ? "Unmute" : "Mute");
+  syncSpeech(mute); // and nothing you say gets signed
 }
 function toggleEmsCam() {
   if (!emsMic) return;
@@ -442,12 +459,13 @@ function cleanup() {
   if (stream) stream.getTracks().forEach(t => t.stop());
   if (emsMic) emsMic.getTracks().forEach(t => t.stop());
   const p = peer; peer = null; if (p) setTimeout(() => p.destroy(), 200);
-  stream = emsMic = conn = call = null; muted = videoOff = false; role = null;
+  stream = emsMic = conn = call = null; muted = videoOff = emsMuted = false; role = null;
   stopSigner();
   $("emsVideo").srcObject = null; $("emsSelf").srcObject = null; $("emsFeed").srcObject = null; $("emsPh").hidden = false;
   $("waiting").hidden = false; $("vtag").hidden = true;
   $("cap").textContent = "Waiting…"; $("gl").textContent = ""; $("warn").hidden = true; $("sent").textContent = "";
   $("heard").textContent = "Speak, and the signer will sign it."; $("interim").textContent = "";
+  setListening(true);
   setCtl("muteBtn", false, "🎙", "Mute"); setCtl("videoBtn", false, "📹", "Stop video"); setCtl("eMuteBtn", false, "🎙", "Mute"); setCtl("eVideoBtn", false, "📹", "Stop video");
 }
 function leave(msg) { cleanup(); $("homeMsg").textContent = msg || ""; go("home"); }
@@ -468,7 +486,7 @@ const player = new ClipPlayer([el("v0"), el("v1")], el("pic"), {
 });
 const fix = i => i.image ? { ...i, image: base + i.image } : (i.src.startsWith("/") ? i : { ...i, src: base + i.src });
 window.SL = {
-  fallbackGloss,
+  fallbackGloss: text => fallbackGloss(text, Object.keys(lex.signs || {})),
   hasSign: w => Boolean(lex.signs && lex.signs[w]),
   resolve: gloss => { const r = resolve(gloss, lex); return { items: r.items.map(fix), tokens: r.tokens }; },
   play: items => player.play(items, 1),
