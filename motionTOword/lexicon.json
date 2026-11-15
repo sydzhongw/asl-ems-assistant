@@ -14,6 +14,7 @@
     "GO":       "clips/go.mp4",
     "WHAT":     "clips/what.mp4",
     "WHERE":    "clips/where.mp4",
+    "WHEN":     "clips/when.mp4",
     "HELP":     "clips/help.mp4",
     "HURT":     "clips/hurt.mp4",
     "BREATHE":  "clips/breathe.mp4",
@@ -89,8 +90,14 @@
     "FEEL":       "clips/feel.mp4",
     "WHY":        "clips/why.mp4",
     "WHO":        "clips/who.mp4",
-    "WITH":       "clips/with.mp4"
-    
+    "WITH":       "clips/with.mp4",
+    "ACCIDENT":   "clips/accident.mp4",
+    "ADDRESS":    "clips/address.mp4",
+    "NEAR":       "clips/near.mp4",
+    "FAR":        "clips/far.mp4",
+    "FALLEN":     "clips/fallen.mp4",
+    "INJURED":    "clips/injured.mp4",
+    "CHOKING":    "clips/choking.mp4"
 
     
   },

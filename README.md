@@ -21,7 +21,35 @@ A mobile app that helps EMS responders communicate with culturally Deaf patients
 
 ## Setup 
 
-(not finished)
+Use Node.js `20.19+` or `22.12+` with npm, then install the JavaScript
+dependencies:
+
+```sh
+npm install
+```
+
+Run the backend and frontend in separate terminals:
+
+```sh
+npm start
+```
+
+```sh
+npm run dev
+```
+
+Open the frontend URL printed by Vite. The existing app is at `/`; the React
+question-picker demo is at `/react.html`. The Vite server proxies API and static
+asset requests to the backend on port 3000.
+
+Check TypeScript and create the production frontend in `dist/` with:
+
+```sh
+npm run build
+```
+
+Then run `npm start` to serve the built frontend through Express. If no build
+exists, Express continues to serve the source files in `app/`.
 
 ## Team
 

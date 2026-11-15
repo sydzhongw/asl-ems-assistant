@@ -14,19 +14,19 @@ const app = express();
 
 app.use(express.json({ limit: "30mb" }));
 
+app.use(express.static(path.join(root, "dist")));
 app.use(express.static(path.join(root, "app")));
 app.use("/data", express.static(path.join(root, "data")));
 app.use("/assets", express.static(path.join(root, "assets")));
 app.use("/motionTOword", express.static(path.join(root, "motionTOword")));
 
-const server = http.createServer(app);
-const wss = new WebSocket.Server({ server });
-
-const roomPeers = new Map();
-
 // ======================================================
 // WEBSOCKET SIGNALING
 // ======================================================
+
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ server, path: "/ws" });
+const roomPeers = new Map();
 
 wss.on("connection", (ws, req) => {
   const params = new URL(req.url || "/", "http://localhost");
@@ -48,15 +48,15 @@ wss.on("connection", (ws, req) => {
 
       if (!msg || !msg.type) return;
 
-      const payload = {
+      const payload = JSON.stringify({
         ...msg,
         room,
         mode,
-      };
+      });
 
       members.forEach((peer) => {
         if (peer !== ws && peer.readyState === WebSocket.OPEN) {
-          peer.send(JSON.stringify(payload));
+          peer.send(payload);
         }
       });
     } catch (e) {
@@ -66,7 +66,6 @@ wss.on("connection", (ws, req) => {
 
   ws.on("close", () => {
     const peers = roomPeers.get(room);
-
     if (!peers) return;
 
     peers.delete(ws);
@@ -92,7 +91,7 @@ const phrases = questionData.phrases || [];
 const ids = new Set(phrases.map((p) => p.id));
 
 const list = phrases
-  .map((p) => `${p.id}: ${p.english.join(" | ")}`)
+  .map((p) => `${p.id}: ${(p.english || []).join(" | ")}`)
   .join("\n");
 
 // ======================================================
@@ -102,10 +101,7 @@ const list = phrases
 function loadVocab() {
   try {
     const raw = JSON.parse(
-      fs.readFileSync(
-        path.join(root, "data/lexicon.json"),
-        "utf8"
-      )
+      fs.readFileSync(path.join(root, "data/lexicon.json"), "utf8")
     );
 
     const arr = Array.isArray(raw)
@@ -121,11 +117,7 @@ function loadVocab() {
         typeof w === "string"
           ? w
           : w &&
-            (w.word ||
-              w.gloss ||
-              w.id ||
-              w.name ||
-              w.english)
+            (w.word || w.gloss || w.id || w.name || w.english)
       )
       .filter(Boolean);
 
@@ -158,10 +150,9 @@ if (!process.env.GEMINI_MODEL) {
   process.exit(1);
 }
 
-// Gemini API-key configuration.
-// Do not set vertexai: true when using a Google AI Studio API key.
-
+// Agent Platform Express Mode API-key configuration.
 const ai = new GoogleGenAI({
+  vertexai: true,
   apiKey: process.env.GEMINI_API_KEY,
 });
 
@@ -174,20 +165,14 @@ const fallbackModel =
 // QUOTA PROTECTION
 // ======================================================
 
-const MAX_CALLS = Number(
-  process.env.MAX_GEMINI_CALLS || 60
-);
-
-const ALLOW_LIVE =
-  process.env.ALLOW_LIVE === "true";
-
+const MAX_CALLS = Number(process.env.MAX_GEMINI_CALLS || 60);
+const ALLOW_LIVE = process.env.ALLOW_LIVE === "true";
 const MIN_GAP_MS = 1500;
 
 let calls = 0;
 let lastCallAt = 0;
 
-const tooFast = () =>
-  Date.now() - lastCallAt < MIN_GAP_MS;
+const tooFast = () => Date.now() - lastCallAt < MIN_GAP_MS;
 
 const sleep = (ms) =>
   new Promise((resolve) => setTimeout(resolve, ms));
@@ -222,15 +207,13 @@ function localMatch(text) {
   };
 
   for (const p of phrases) {
-    for (const english of p.english) {
+    for (const english of p.english || []) {
       const words = norm(english);
 
-      const common = words.filter(
-        (word) => spoken.has(word)
-      ).length;
+      const common = words.filter((word) => spoken.has(word)).length;
 
       const score =
-        common / Math.max(spoken.size, words.length);
+        common / Math.max(spoken.size, words.length, 1);
 
       if (score > best.score) {
         best = {
@@ -245,14 +228,14 @@ function localMatch(text) {
 }
 
 // ======================================================
-// ERROR HANDLING
+// HELPERS
 // ======================================================
 
 function friendly(e) {
   const msg = String((e && e.message) || e);
 
   if (msg.includes("CALL_CAP")) {
-    return "Gemini call limit for this run reached.";
+    return "Gemini call limit for this run reached. Raise MAX_GEMINI_CALLS in .env.";
   }
 
   if (/429|RESOURCE_EXHAUSTED/i.test(msg)) {
@@ -264,7 +247,11 @@ function friendly(e) {
   }
 
   if (/400|INVALID_ARGUMENT/i.test(msg)) {
-    return "Gemini rejected the request. Check the video format and server logs.";
+    return "The recording could not be read. Try signing again.";
+  }
+
+  if (/TIMEOUT/i.test(msg)) {
+    return "Gemini took too long. Try a shorter clip.";
   }
 
   return "Translation failed. Check the server log for details.";
@@ -272,7 +259,6 @@ function friendly(e) {
 
 function logGeminiError(label, e) {
   console.error(`\n${label}`);
-
   console.error("Message:", e?.message || e);
 
   if (e?.status) {
@@ -280,20 +266,89 @@ function logGeminiError(label, e) {
   }
 
   if (e?.error) {
-    console.error(
-      "Error details:",
-      JSON.stringify(e.error, null, 2)
-    );
+    console.error("Error details:", JSON.stringify(e.error, null, 2));
   }
 
   if (e?.response) {
-    console.error(
-      "Response:",
-      JSON.stringify(e.response, null, 2)
-    );
+    console.error("Response:", JSON.stringify(e.response, null, 2));
   }
 
   console.error("");
+}
+
+function parseModelJson(text) {
+  const cleaned = String(text || "")
+    .replace(/^\s*```(?:json)?\s*/i, "")
+    .replace(/\s*```\s*$/, "")
+    .trim();
+
+  return JSON.parse(cleaned);
+}
+
+// ======================================================
+// VIDEO VALIDATION
+// ======================================================
+
+function decodeVideo(video) {
+  if (typeof video !== "string" || !video.trim()) {
+    throw new Error("No video data was received.");
+  }
+
+  let base64 = video.trim();
+
+  // Remove data URL prefix if present.
+  if (base64.startsWith("data:")) {
+    const comma = base64.indexOf(",");
+
+    if (comma === -1) {
+      throw new Error("Invalid video data URL.");
+    }
+
+    base64 = base64.slice(comma + 1);
+  }
+
+  base64 = base64.replace(/\s/g, "");
+
+  // Normalize URL-safe Base64.
+  base64 = base64.replace(/-/g, "+").replace(/_/g, "/");
+
+  if (!base64.length) {
+    throw new Error("The uploaded video is empty.");
+  }
+
+  if (!/^[A-Za-z0-9+/]*={0,2}$/.test(base64)) {
+    throw new Error("The video contains invalid Base64 characters.");
+  }
+
+  if (base64.length % 4 === 1) {
+    throw new Error("The video has an invalid Base64 length.");
+  }
+
+  base64 = base64.replace(/=+$/, "");
+
+  while (base64.length % 4) {
+    base64 += "=";
+  }
+
+  const buffer = Buffer.from(base64, "base64");
+
+  if (!buffer.length) {
+    throw new Error("The video contains no bytes.");
+  }
+
+  const normalized = buffer.toString("base64");
+
+  if (
+    normalized.replace(/=+$/, "") !==
+    base64.replace(/=+$/, "")
+  ) {
+    throw new Error("The video Base64 data is malformed.");
+  }
+
+  return {
+    buffer,
+    base64: normalized,
+  };
 }
 
 // ======================================================
@@ -326,9 +381,7 @@ async function generate(params) {
   const models = [
     model,
     fallbackModel,
-  ].filter(
-    (m, i, arr) => m && arr.indexOf(m) === i
-  );
+  ].filter((m, i, arr) => m && arr.indexOf(m) === i);
 
   let lastErr;
 
@@ -358,10 +411,15 @@ async function generate(params) {
       } catch (e) {
         lastErr = e;
 
-        const msg = String(
-          (e && e.message) || e
-        );
+        const msg = String((e && e.message) || e);
 
+        // Invalid requests should not consume the local call allowance.
+        if (/400|INVALID_ARGUMENT/i.test(msg)) {
+          calls = Math.max(0, calls - 1);
+          throw e;
+        }
+
+        // Try the fallback model for quota or unavailable-model errors.
         if (
           /429|RESOURCE_EXHAUSTED|404|NOT_FOUND|no longer available/i.test(
             msg
@@ -370,11 +428,8 @@ async function generate(params) {
           break;
         }
 
-        if (
-          !/503|UNAVAILABLE|high demand|overload/i.test(
-            msg
-          )
-        ) {
+        // Retry temporary server errors once.
+        if (!/503|UNAVAILABLE|high demand|overload/i.test(msg)) {
           throw e;
         }
 
@@ -408,8 +463,8 @@ app.get("/api/usage", (req, res) => {
 
 app.get("/api/clips", (req, res) => {
   const have = phrases
-    .filter((p) =>
-      fs.existsSync(path.join(root, p.clip))
+    .filter(
+      (p) => p.clip && fs.existsSync(path.join(root, p.clip))
     )
     .map((p) => p.id);
 
@@ -423,11 +478,11 @@ app.get("/api/clips", (req, res) => {
 const cache = new Map();
 
 app.post("/api/english-to-asl", async (req, res) => {
-  const text = String(
-    (req.body && req.body.text) || ""
-  ).slice(0, 300);
+  const text = String((req.body && req.body.text) || "")
+    .slice(0, 300)
+    .trim();
 
-  if (!text.trim()) {
+  if (!text) {
     return res.json({
       phrase_id: null,
       confidence: 0,
@@ -450,7 +505,6 @@ app.post("/api/english-to-asl", async (req, res) => {
     };
 
     cache.set(key, out);
-
     return res.json(out);
   }
 
@@ -475,7 +529,7 @@ app.post("/api/english-to-asl", async (req, res) => {
       },
     });
 
-    const out = JSON.parse(r.text);
+    const out = parseModelJson(r.text);
 
     if (!ids.has(out.phrase_id)) {
       return res.json({
@@ -495,76 +549,13 @@ app.post("/api/english-to-asl", async (req, res) => {
   } catch (e) {
     logGeminiError("English-to-ASL error:", e);
 
-    return res.json({
+    return res.status(500).json({
       phrase_id: null,
       confidence: 0,
       error: friendly(e),
     });
   }
 });
-
-// ======================================================
-// VIDEO BASE64 VALIDATION
-// ======================================================
-
-function decodeVideo(video) {
-  if (
-    typeof video !== "string" ||
-    !video.trim()
-  ) {
-    throw new Error("No video data was received.");
-  }
-
-  let base64 = video.trim();
-
-  // Remove data URL prefix if the frontend sends one.
-  if (base64.startsWith("data:")) {
-    const comma = base64.indexOf(",");
-
-    if (comma === -1) {
-      throw new Error("Invalid video data URL.");
-    }
-
-    base64 = base64.slice(comma + 1);
-  }
-
-  // Remove whitespace.
-  base64 = base64.replace(/\s/g, "");
-
-  if (!base64.length) {
-    throw new Error("The uploaded video is empty.");
-  }
-
-  // Base64 validation.
-  if (!/^[A-Za-z0-9+/]*={0,2}$/.test(base64)) {
-    throw new Error("The video contains invalid Base64 characters.");
-  }
-
-  if (base64.length % 4 === 1) {
-    throw new Error("The video has an invalid Base64 length.");
-  }
-
-  const buffer = Buffer.from(base64, "base64");
-
-  if (!buffer.length) {
-    throw new Error("The video contains no bytes.");
-  }
-
-  // Confirm that the decoded bytes can be re-encoded.
-  const normalized = buffer.toString("base64");
-
-  if (
-    normalized.replace(/=+$/, "") !==
-    base64.replace(/=+$/, "")
-  ) {
-    throw new Error("The video Base64 data is malformed.");
-  }
-
-  return {
-    buffer,
-    base64: normalized,
-  };
-}
 
 // ======================================================
 // PATIENT ASL VIDEO -> ENGLISH
@@ -585,11 +576,7 @@ app.post("/api/asl-to-english", async (req, res) => {
     });
   }
 
-  // Check for missing video.
-  if (
-    typeof video !== "string" ||
-    !video.trim()
-  ) {
+  if (typeof video !== "string" || !video.trim()) {
     return res.status(400).json({
       text: null,
       error: "No video was received. Please record again.",
@@ -604,7 +591,6 @@ app.post("/api/asl-to-english", async (req, res) => {
     });
   }
 
-  // Prevent requests from arriving too quickly.
   if (tooFast()) {
     return res.json({
       text: null,
@@ -612,7 +598,6 @@ app.post("/api/asl-to-english", async (req, res) => {
     });
   }
 
-  // Validate and decode the video.
   let decoded;
 
   try {
@@ -629,10 +614,7 @@ app.post("/api/asl-to-english", async (req, res) => {
   const videoBuffer = decoded.buffer;
   const normalizedVideo = decoded.base64;
 
-  // Normalize MIME type.
-  const cleanMimeType = String(
-    mimeType || "video/webm"
-  )
+  const cleanMimeType = String(mimeType || "video/webm")
     .split(";")[0]
     .trim()
     .toLowerCase();
@@ -649,15 +631,12 @@ app.post("/api/asl-to-english", async (req, res) => {
     });
   }
 
-  // Log metadata without exposing the video.
   console.log("Incoming ASL video:", {
     hasVideo: Boolean(video),
-    videoType: typeof video,
     originalLength: video.length,
     bufferLength: videoBuffer.length,
     base64Length: normalizedVideo.length,
     mimeType: cleanMimeType,
-    base64Start: normalizedVideo.slice(0, 20),
     live: Boolean(live),
   });
 
@@ -675,7 +654,6 @@ app.post("/api/asl-to-english", async (req, res) => {
       "If no signing is visible, or the signing is unclear, set sentence to null. " +
       'Respond only with JSON: {"glosses": string[], "sentence": string|null, "confidence": number between 0 and 1}.';
 
-    // Use the official SDK helper to construct the video part.
     const videoPart = createPartFromBase64(
       normalizedVideo,
       cleanMimeType
@@ -703,7 +681,7 @@ app.post("/api/asl-to-english", async (req, res) => {
       throw new Error("Gemini returned an empty response.");
     }
 
-    const out = JSON.parse(r.text);
+    const out = parseModelJson(r.text);
 
     const confidence = Number(out.confidence) || 0;
 
@@ -752,7 +730,5 @@ app.post("/api/asl-to-english", async (req, res) => {
 const port = process.env.PORT || 3000;
 
 server.listen(port, () => {
-  console.log(
-    `SignLink EMS running at http://localhost:${port}`
-  );
+  console.log(`SignLink EMS running at http://localhost:${port}`);
 });
