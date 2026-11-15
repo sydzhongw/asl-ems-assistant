@@ -9,6 +9,7 @@ app.use(express.json({ limit: "30mb" }));
 app.use(express.static(path.join(root, "app")));
 app.use("/data", express.static(path.join(root, "data")));
 app.use("/assets", express.static(path.join(root, "assets")));
+app.use("/motionTOword", express.static(path.join(root, "motionTOword")));
 
 const { phrases } = JSON.parse(fs.readFileSync(path.join(root, "data/ems_questions.json"), "utf8"));
 const ids = new Set(phrases.map((p) => p.id));

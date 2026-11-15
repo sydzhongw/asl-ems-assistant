@@ -17,7 +17,8 @@ h2 { margin: 0 0 8px; font-size: 1rem; color: var(--muted); font-weight: 700; }
 input, select, button { font: inherit; color: inherit; }
 input[type=text], input[type=password], select {
   background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 9px 12px; }
-.key input { width: 260px; }
+.keys { display: flex; flex-wrap: wrap; gap: 10px 20px; }
+.key input { width: 200px; }
 
 main { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr);
   gap: 28px; padding: 0 28px 40px; max-width: 1200px; margin: 0 auto; }
@@ -51,4 +52,8 @@ button:disabled { opacity: .45; cursor: default; }
 .gloss li.now { background: var(--now); color: #1b2430; border-color: var(--now); }
 .status { color: var(--muted); font-size: .9rem; min-height: 1.4em; }
 .status.err { color: var(--miss); }
+body.embedded { height: 100vh; overflow: hidden; background: #0d1117; }
+body.embedded header, body.embedded .controls, body.embedded .text { display: none; }
+body.embedded main { display: block; height: 100vh; max-width: none; margin: 0; padding: 0; }
+body.embedded .stage, body.embedded .screen { height: 100%; margin: 0; aspect-ratio: auto; border-radius: 0; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }

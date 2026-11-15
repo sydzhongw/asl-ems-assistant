@@ -2,116 +2,344 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>SignLink EMS</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: system-ui, sans-serif; background: #0a1628; color: white; height: 100vh; overflow: hidden; }
-  .screen { display: none; height: 100vh; }
-  .screen.active { display: flex; flex-direction: column; }
-
-  /* HOME */
-  #home { align-items: center; justify-content: center; text-align: center; }
-  .logo { font-size: 60px; font-weight: 700; }
-  .logo span { color: #2dd4bf; }
-  .sub { color: #94a3b8; margin: 10px 0 40px; }
-  .start { width: 180px; height: 180px; border-radius: 50%; background: #2dd4bf; border: none; color: #0a1628; font-size: 18px; font-weight: 600; cursor: pointer; }
-
-  /* PICKER */
-  #picker { align-items: center; justify-content: center; gap: 30px; }
-  h2 { font-size: 32px; }
-  .roles { display: flex; gap: 24px; }
-  .role {
-    width: 240px; height: 140px; background: #1e293b; border: 2px solid #334155;
-    border-radius: 16px; color: white; font-size: 18px; cursor: pointer;
-  }
-  .role:hover { border-color: #2dd4bf; }
-
-  /* PATIENT FACETIME */
-  #patient { background: #000; }
-  .ft-main {
-    flex: 1; background: #111; display: flex; align-items: center; justify-content: center;
-    font-size: 22px; color: #7dd3fc; position: relative;
-  }
-  .self {
-    position: absolute; bottom: 90px; right: 16px; width: 120px; height: 160px;
-    background: #222; border-radius: 12px; display: flex; align-items: center; justify-content: center;
-    font-size: 12px; color: #aaa;
-  }
-  .ft-bar {
-    height: 80px; background: #111; display: flex; align-items: center; justify-content: center; gap: 20px;
-  }
-  .circle { width: 52px; height: 52px; border-radius: 50%; background: #333; border: none; color: white; }
-  .red { background: #e11d48; }
-
-  /* EMS */
-  #ems { background: #0a1628; }
-  .ems-top { padding: 16px; background: #0f1c2e; }
-  .ems-body { flex: 1; display: flex; padding: 16px; gap: 16px; }
-  .cam { flex: 1; background: #1e293b; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #7dd3fc; }
-  .text { width: 340px; background: #0f172a; border-radius: 12px; padding: 24px; }
-  .big { font-size: 36px; font-weight: 700; margin-top: 12px; }
-  .ems-bottom { padding: 16px; display: flex; justify-content: center; gap: 12px; background: #0f1c2e; }
-  .btn { background: #1e293b; color: white; border: none; padding: 12px 20px; border-radius: 40px; cursor: pointer; }
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none !important}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:#0a1220;color:#e8eef7}
+.screen{display:none;min-height:100vh}.screen.active{display:flex;flex-direction:column}
+#home{align-items:center;justify-content:center;text-align:center;background:radial-gradient(circle at top,#0f2a3d 0%,#0a1220 70%)}
+.logo{font-size:56px;font-weight:700;letter-spacing:-1px}.logo span{color:#00d4aa}
+.subtitle{margin:12px 24px 48px;color:#94a3b8;font-size:18px}
+.start-btn{width:200px;height:200px;margin:0 auto;border-radius:50%;border:none;background:linear-gradient(145deg,#00e6b8,#00b38f);color:#04241c;font-size:22px;font-weight:700;cursor:pointer;box-shadow:0 12px 40px rgba(0,230,184,.35);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+#call{background:#0d1117}
+.header{display:flex;justify-content:space-between;align-items:center;padding:16px 24px;background:#111827;border-bottom:1px solid #1f2937;font-size:15px}
+.status{color:#00d4aa}
+.videos{display:flex;gap:16px;padding:16px;height:40vh;min-height:230px}
+.video-box{flex:1;min-width:0;background:#1a2332;border-radius:16px;display:flex;align-items:center;justify-content:center;color:#7dd3fc;font-size:16px;position:relative;overflow:hidden;text-align:center}
+.video-box video{width:100%;height:100%;object-fit:contain}
+.video-box iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#0d1117}
+#cam{transform:scaleX(-1)}
+.video-label{position:absolute;top:12px;left:12px;z-index:2;background:rgba(0,0,0,.65);padding:4px 12px;border-radius:20px;font-size:13px}
+.msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:24px}
+.captions{background:#111827;padding:16px 32px;border-top:1px solid #1f2937}
+.caption-label{color:#00d4aa;font-size:13px;margin-bottom:6px}
+.caption-text{font-size:32px;font-weight:600;line-height:1.25;white-space:pre-line}
+.note{color:#fbbf24;font-size:15px;margin-top:6px;min-height:20px}
+.patient{background:#0f1a2b;padding:12px 32px;border-top:1px solid #1f2937}
+.patient .caption-label{color:#7dd3fc}
+#patientText{font-size:20px;font-weight:600;min-height:28px}
+.glosses{color:#7dd3fc;font-size:15px;margin-top:6px;min-height:18px}
+.banner{background:#7f1d1d;color:#fff;padding:12px 32px;font-weight:600}
+.picker{padding:12px 32px;background:#0d1117}
+.picker h3{font-size:15px;color:#cbd5e1;margin:10px 0 8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-height:44px;padding:0 16px;border-radius:999px;border:1px solid #3a4560;background:#1c2433;color:#e2e8f0;font-size:15px;cursor:pointer}
+.chip.on{border:2px solid #00d4aa;background:#0f3a33}
+.chip.noclip{opacity:.5;border-style:dashed}
+.controls{display:flex;justify-content:center;gap:12px;padding:20px;background:#0d1117;flex-wrap:wrap}
+.btn{background:#1f2937;color:#fff;border:none;min-height:48px;padding:0 24px;border-radius:50px;font-size:15px;cursor:pointer}
+.btn-end{background:#b91c1c}.btn-primary{background:#00b38f;color:#04241c;font-weight:700}
+.btn.on{background:#16a34a;color:#fff;font-weight:700}
+.btn-help{background:#f97316;color:#1c0a00;font-weight:700}
+.rec{background:#fbbf24;color:#1c1400;font-weight:700}
+.rec.recording{background:#dc2626;color:#fff}
 </style>
 </head>
 <body>
 
 <div id="home" class="screen active">
-  <div class="logo">SignLink <span>EMS</span></div>
-  <div class="sub">A communication aid for EMS and ASL-signing patients</div>
-  <button class="start" onclick="go('picker')">Start Call</button>
-</div>
-
-<div id="picker" class="screen">
-  <h2>Choose your role</h2>
-  <div class="roles">
-    <button class="role" onclick="go('patient')">I’m the Patient</button>
-    <button class="role" onclick="go('ems')">I’m the EMS</button>
+  <div>
+    <div class="logo">SignLink <span>EMS</span></div>
+    <div class="subtitle">A communication aid for EMS and ASL-signing patients</div>
+    <button class="start-btn" onclick="startCall()">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
+      Start Call
+    </button>
   </div>
 </div>
 
-<div id="patient" class="screen">
-  <div class="ft-main" id="signer">
-    AI Interpreter<br>Waiting...
-    <div class="self">Your camera</div>
-  </div>
-  <div class="ft-bar">
-    <button class="circle">Mute</button>
-    <button class="circle red" onclick="go('home')">End</button>
-    <button class="circle">Video</button>
-  </div>
-</div>
+<div id="call" class="screen">
+  <div class="header"><div>EMS ASL Translator</div><div class="status">● Connected</div><div id="timer">00:00</div></div>
+  <div class="banner" id="banner" hidden>Human ASL interpreter requested. Keep communicating with gestures and the buttons below.</div>
 
-<div id="ems" class="screen">
-  <div class="ems-top">SignLink EMS • Connected</div>
-  <div class="ems-body">
-    <div class="cam">Patient Camera</div>
-    <div class="text">
-      <div style="color:#2dd4bf;font-size:13px;">Patient signed</div>
-      <div class="big" id="caption">Waiting...</div>
-    </div>
+  <div class="videos">
+    <div class="video-box"><div class="video-label">Patient</div><video id="cam" autoplay muted playsinline></video><div class="msg" id="camMsg">Patient camera</div></div>
+    <div class="video-box"><div class="video-label">ASL Signer</div><video id="signer" muted playsinline hidden></video><iframe id="motionSigner" src="/motionTOword/?embed=1" title="ASL signs for the patient" hidden></iframe><div class="msg" id="signerMsg">ASL signer ready</div></div>
   </div>
-  <div class="ems-bottom">
-    <button class="btn" onclick="next()">Ask next question</button>
-    <button class="btn" onclick="go('picker')">Change role</button>
-    <button class="btn" style="background:#e11d48" onclick="go('home')">End Call</button>
+
+  <div class="captions">
+    <div class="caption-label">ENGLISH (for EMT): what the patient signed (AI translation, confirm with patient)</div>
+    <div class="caption-text" id="caption">Press the yellow Start button, then the patient signs</div>
+    <div class="glosses" id="glosses"></div>
+    <div class="note" id="note"></div>
+  </div>
+
+  <div class="patient">
+    <div class="caption-label">LAST QUESTION SIGNED TO PATIENT</div>
+    <div id="patientText">None yet. Tap a question or press Speak.</div>
+  </div>
+
+  <div class="picker" id="picker"></div>
+
+  <div class="controls">
+    <button class="btn btn-primary" id="speakBtn" onclick="listen()">Speak</button>
+    <button class="btn" id="liveBtn" onclick="toggleLive()">Live translate: off</button>
+    <button class="btn rec" id="recBtn">Start patient signing</button>
+    <button class="btn on" id="ttsBtn" onclick="toggleTTS()">Read aloud: ON</button>
+    <button class="btn btn-help" onclick="requestInterpreter()">Request interpreter</button>
+    <button class="btn btn-end" onclick="endCall()">End Call</button>
   </div>
 </div>
 
 <script>
-function go(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+const $ = id => document.getElementById(id);
+const REC_LABEL = 'Start patient signing';
+let recTimer = null;
+let phrases = [], haveClips = new Set(), camStream = null, recorder = null, chunks = [], sec = 0;
+let liveOn=false, liveBusy=false, liveRec=null, liveLines=[], livePending=null, speechRec=null, ttsOn=true;
+const motionFrame = $('motionSigner');
+let motionReady = false, pendingMotionText = null;
+
+// ---- Motion signer iframe ----
+// The iframe's initial about:blank document already reports readyState "complete",
+// so only treat it as ready once the real page has loaded.
+function frameLoaded(){
+  try{const d=motionFrame.contentDocument;return !!d&&d.readyState==='complete'&&d.location.href!=='about:blank'}catch{return false}
 }
-const q = ["Where does it hurt?", "Can you breathe okay?"];
-const a = ["My chest hurts", "Yes"];
-let i = 0;
-function next() {
-  document.getElementById('signer').innerHTML = "AI Interpreter<br>Signing: " + q[i % q.length] + '<div class="self">Your camera</div>';
-  document.getElementById('caption').textContent = a[i % a.length];
-  i++;
+function markMotionReady(){
+  if(motionReady) return;
+  motionReady=true;
+  if(pendingMotionText!==null) sendMotionText(pendingMotionText);
 }
+motionFrame.addEventListener('load',markMotionReady);
+window.addEventListener('message',e=>{
+  if(e.origin===location.origin&&e.source===motionFrame.contentWindow&&e.data&&e.data.type==='ready') markMotionReady();
+});
+if(frameLoaded()) motionReady=true;
+
+function sendMotionText(text){
+  if(!motionReady&&frameLoaded()) motionReady=true;
+  if(!motionReady||!motionFrame.contentWindow){pendingMotionText=text;return}
+  pendingMotionText=null;
+  motionFrame.contentWindow.postMessage({type:'say',text},location.origin);
+}
+function stopMotion(){
+  pendingMotionText=null;
+  if(motionReady&&motionFrame.contentWindow)motionFrame.contentWindow.postMessage({type:'stop'},location.origin);
+}
+
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active')}
+
+// ---- Read-aloud (ASL to speech) ----
+function speak(text,queue){
+  if(!ttsOn||!text||!('speechSynthesis' in window)) return;
+  if(!queue) speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text); u.lang='en-US'; u.rate=0.95;
+  speechSynthesis.speak(u);
+}
+function toggleTTS(){
+  ttsOn=!ttsOn;
+  $('ttsBtn').textContent='Read aloud: '+(ttsOn?'ON':'off');
+  $('ttsBtn').classList.toggle('on',ttsOn);
+  if(!ttsOn&&'speechSynthesis' in window) speechSynthesis.cancel();
+}
+
+// ---- Load phrases and which clips exist ----
+Promise.all([fetch('/data/ems_questions.json').then(r=>r.json()), fetch('/api/clips').then(r=>r.json()).catch(()=>({have:[]}))])
+  .then(([d,c])=>{phrases=d.phrases;haveClips=new Set(c.have||[]);renderPicker()})
+  .catch(()=>{$('note').textContent='Could not load the question list.'});
+
+function renderPicker(){
+  const titles={assessment:'Patient assessment',emergency:'Emergency questions'};
+  const cats=[...new Set(phrases.map(p=>p.category))];   // show every category, not just two
+  $('picker').innerHTML=cats.map(k=>{
+    const t=titles[k]||(String(k).charAt(0).toUpperCase()+String(k).slice(1));
+    return `<h3>${t}</h3><div class="chips">`+
+      phrases.filter(p=>p.category===k).map(p=>`<button class="chip${haveClips.has(p.id)?'':' noclip'}" data-id="${p.id}">${p.english[0]}</button>`).join('')+`</div>`;
+  }).join('');
+  $('picker').querySelectorAll('.chip').forEach(b=>b.onclick=()=>showPhrase(b.dataset.id));
+}
+
+function showPhrase(id){
+  const p=phrases.find(x=>x.id===id); if(!p) return;
+  stopMotion(); motionFrame.hidden=true;
+  document.querySelectorAll('#picker .chip').forEach(c=>c.classList.toggle('on',c.dataset.id===id));
+  $('patientText').textContent=p.english[0]; $('note').textContent='';
+  const v=$('signer'), m=$('signerMsg');
+  const noClip=()=>{v.hidden=true;v.removeAttribute('src');m.hidden=false;m.textContent='Clip not recorded yet. Request a human interpreter.'};
+  if(!haveClips.has(id)) return noClip();
+  m.hidden=true; v.hidden=false; v.onerror=noClip;
+  v.src='/'+String(p.clip).replace(/^\/+/,'');   // avoid "//path" being read as another host
+  v.play().catch(()=>{});
+}
+
+function showMotion(text){
+  const v=$('signer');
+  v.pause(); v.onerror=null; v.removeAttribute('src'); v.hidden=true;
+  motionFrame.hidden=false; $('signerMsg').hidden=true;
+  setTimeout(()=>sendMotionText(text),50);   // let the iframe become visible first
+}
+
+// ---- Speech to ASL ----
+function listen(){
+  const R=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!R){$('note').textContent='Speech is not supported in this browser. Use Chrome or tap a question.';return}
+  if(speechRec){try{speechRec.abort()}catch{}speechRec=null}   // one recognizer at a time
+  if('speechSynthesis' in window) speechSynthesis.cancel();    // don't let read-aloud feed the mic
+  const rec=new R(); rec.lang='en-US'; rec.interimResults=false; rec.maxAlternatives=1;
+  speechRec=rec;
+  $('note').textContent='Listening...'; $('speakBtn').textContent='Listening...';
+  let gotResult=false;
+  rec.onresult=async e=>{
+    gotResult=true;
+    const text=e.results[0][0].transcript; $('patientText').textContent=text;
+    try{
+      const r=await fetch('/api/english-to-asl',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text})});
+      if(!r.ok) throw new Error('bad status');
+      const {phrase_id,confidence}=await r.json();
+      const p=phrases.find(x=>x.id===phrase_id);
+      if(p&&confidence>=0.7){
+        showPhrase(phrase_id);
+        $('note').textContent='Heard: "'+text+'" → Signing: "'+p.english[0]+'"';
+      } else {
+        showMotion(text);
+        $('note').textContent='No approved phrase matched. Playing word-level ASL signs.';
+      }
+    }catch{
+      showMotion(text);
+      $('note').textContent='Could not match an approved phrase. Playing word-level ASL signs.';
+    }
+  };
+  rec.onerror=e=>{
+    const msgs={'not-allowed':'Microphone blocked. Allow mic access (needs https or localhost).','service-not-allowed':'Microphone blocked. Allow mic access (needs https or localhost).','no-speech':'Did not hear anything. Press Speak and try again.','audio-capture':'No microphone found.','network':'Speech recognition needs an internet connection in Chrome.'};
+    $('note').textContent=(msgs[e.error]||'Could not hear anything.')+' You can also tap a question.';
+  };
+  rec.onend=()=>{
+    $('speakBtn').textContent='Speak'; speechRec=null;
+    if(!gotResult&&$('note').textContent==='Listening...') $('note').textContent='Did not hear anything. Press Speak and try again.';
+  };
+  try{rec.start()}catch{$('speakBtn').textContent='Speak';speechRec=null}
+}
+
+// ---- Call lifecycle ----
+async function startCall(){
+  show('call'); sec=0; chunks=[];
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+    $('camMsg').textContent='Camera needs https or localhost.'; return;
+  }
+  try{
+    camStream=await navigator.mediaDevices.getUserMedia({video:true,audio:false});
+    $('cam').srcObject=camStream; $('camMsg').hidden=true;
+    const mt=MediaRecorder.isTypeSupported('video/webm')?'video/webm':'';
+    recorder=new MediaRecorder(camStream,mt?{mimeType:mt}:undefined);
+    recorder.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
+    recorder.onstop=sendSigns;
+  }catch{$('camMsg').hidden=false;$('camMsg').textContent='Camera not available. Allow camera access and reload.'}
+}
+function endCall(){
+  liveOn=false; livePending=null; $('liveBtn').textContent='Live translate: off'; $('liveBtn').classList.remove('on');
+  stopMotion(); motionFrame.hidden=true;
+  if('speechSynthesis' in window) speechSynthesis.cancel();
+  if(speechRec){try{speechRec.abort()}catch{}speechRec=null}
+  if(liveRec&&liveRec.state==='recording') liveRec.stop();
+  if(recorder&&recorder.state==='recording'){recorder.onstop=null;recorder.stop()}
+  recorder=null;
+  clearTimeout(recTimer); rb.textContent=REC_LABEL; rb.classList.remove('recording');
+  if(camStream)camStream.getTracks().forEach(t=>t.stop());
+  camStream=null; $('cam').srcObject=null; $('camMsg').hidden=false; $('camMsg').textContent='Patient camera';
+  $('banner').hidden=true; show('home');
+}
+function requestInterpreter(){$('banner').hidden=false} // demo placeholder: connect to a real VRI service later
+
+// ---- Patient signing: record, then translate ----
+const rb=$('recBtn');
+function stopRec(){
+  clearTimeout(recTimer);
+  if(recorder&&recorder.state==='recording') recorder.stop();
+  rb.textContent=REC_LABEL; rb.classList.remove('recording');
+}
+rb.onclick=()=>{
+  if(!recorder){$('note').textContent='Camera is not running. Allow camera access and reload.';return}
+  if(liveOn){$('note').textContent='Turn off Live translate first.';return}
+  if(recorder.state==='recording') return stopRec();     // second tap: stop and translate
+  chunks=[]; recorder.start();                            // first tap: start recording
+  rb.textContent='Stop patient signing (recording...)'; rb.classList.add('recording');
+  $('caption').textContent='Recording... press Stop when the patient is done'; $('glosses').textContent='';
+  recTimer=setTimeout(stopRec,20000);                     // safety stop after 20 seconds
+};
+
+async function sendSigns(){
+  $('caption').textContent='Reading signs...'; $('glosses').textContent='';
+  if(!chunks.length){$('caption').textContent='No video was captured. Try again.';return}
+  const blob=new Blob(chunks,{type:(recorder&&recorder.mimeType)||'video/webm'});
+  const fr=new FileReader();
+  fr.onloadend=async()=>{
+    try{
+      const r=await fetch('/api/asl-to-english',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({video:fr.result.split(',')[1],mimeType:blob.type})});
+      const {text,glosses,error,reason}=await r.json();
+      if(text){
+        $('caption').textContent=text;
+        $('glosses').textContent=glosses&&glosses.length?'Signs seen: '+glosses.join(' · '):'';
+        speak(text,false);
+      } else $('caption').textContent=error?('Server error: '+error):('Unclear'+(reason?' ('+reason+')':'')+'. Ask the patient to sign again, or request a human interpreter.');
+    }catch{$('caption').textContent='Could not reach the server. Ask the patient to sign again.'}
+  };
+  fr.readAsDataURL(blob);
+}
+
+// ---- Live mode: send the camera in short segments and append each translation ----
+const LIVE_MS=4000;
+function toggleLive(){
+  if(!camStream){$('note').textContent='Start the camera first.';return}
+  if(recorder&&recorder.state==='recording'){$('note').textContent='Stop patient signing first.';return}
+  liveOn=!liveOn;
+  $('liveBtn').textContent=liveOn?'Live translate: ON':'Live translate: off';
+  $('liveBtn').classList.toggle('on',liveOn);
+  if(liveOn){liveLines=[];livePending=null;$('caption').textContent='Live: watching for signing...';$('glosses').textContent='';liveCycle()}
+  else if(liveRec&&liveRec.state==='recording') liveRec.stop();
+}
+function liveCycle(){
+  if(!liveOn||!camStream) return;
+  const mt=MediaRecorder.isTypeSupported('video/webm')?'video/webm':'';
+  const rec=new MediaRecorder(camStream,mt?{mimeType:mt}:undefined);
+  const parts=[];
+  rec.ondataavailable=e=>{if(e.data.size)parts.push(e.data)};
+  rec.onstop=()=>{
+    if(liveOn) liveCycle();
+    if(!parts.length) return;
+    const blob=new Blob(parts,{type:rec.mimeType||'video/webm'});
+    if(liveBusy) livePending=blob;   // keep the newest segment instead of dropping it
+    else sendLive(blob);
+  };
+  liveRec=rec; rec.start();
+  setTimeout(()=>{if(rec.state==='recording')rec.stop()},LIVE_MS);
+}
+function sendLive(blob){
+  liveBusy=true;
+  const fr=new FileReader();
+  fr.onloadend=async()=>{
+    try{
+      const r=await fetch('/api/asl-to-english',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({video:fr.result.split(',')[1],mimeType:blob.type,live:true})});
+      const {text,glosses}=await r.json();
+      if(text&&liveOn){
+        liveLines.push(text);
+        $('caption').textContent=liveLines.slice(-3).join('\n');
+        $('glosses').textContent=glosses&&glosses.length?'Latest signs: '+glosses.join(' · '):'';
+        speak(text,true);   // queue so lines read in order
+      }
+    }catch{}
+    liveBusy=false;
+    if(livePending&&liveOn){const b=livePending;livePending=null;sendLive(b)}
+  };
+  fr.readAsDataURL(blob);
+}
+
+setInterval(()=>{if($('call').classList.contains('active')){sec++;
+  $('timer').textContent=String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0')}},1000);
 </script>
 </body>
 </html>
